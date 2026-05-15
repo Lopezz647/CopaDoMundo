@@ -133,11 +133,17 @@ export function DashboardContent({ userId, matches: initialMatches, predictions,
     (m) => !m.is_finished && new Date(m.match_date) <= new Date()
   )
 
-  const handlePredictionSaved = () => {
+ const handlePredictionSaved = () => {
     router.refresh()
+  }
+  if (!isMounted) {
+    return null; 
   }
 
   return (
+    <main className="mx-auto max-w-7xl px-4 py-6 md:py-8">
+      <DashboardHero 
+//
     <main className="mx-auto max-w-7xl px-4 py-6 md:py-8">
       <DashboardHero 
         currentRound={currentRound}
