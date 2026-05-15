@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { MatchCard } from '@/components/match-card'
 import { Ranking } from '@/components/ranking'
@@ -8,7 +8,7 @@ import { StatsCards } from '@/components/stats-cards'
 import { DashboardHero } from '@/components/dashboard-hero'
 import { LatestResults } from '@/components/latest-results'
 import { Match, Prediction, ProfileWithPoints } from '@/lib/types'
-import { Calendar, Trophy, ListChecks } from 'lucide-react'
+import { Calendar, Trophy, ListChecks, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface DashboardContentProps {
@@ -18,9 +18,79 @@ interface DashboardContentProps {
   profiles: ProfileWithPoints[]
 }
 
-export function DashboardContent({ userId, matches, predictions, profiles }: DashboardContentProps) {
+// ============================================
+// CONFIGURAÇÃO DA API
+// ============================================
+const API_KEY = process.env.NEXT_PUBLIC_API_TOKEN;
+// Certifique-se de usar a mesma rota proxy que funcionou no teste
+const API_URL = "/api/futebol/competitions/BSA/matches";
+
+export function DashboardContent({ userId, matches: initialMatches, predictions, profiles }: DashboardContentProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('jogos')
+  
+  // State para guardar os jogos mesclados (Supabase + API)
+  const [matches, setMatches] = useState<Match[]>(initialMatches)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+
+  // ============================================
+  // FUNÇÃO DE BUSCA DA API (Ao Vivo)
+  // ============================================
+  const fetchLiveScores = async () => {
+    if (!API_KEY) return;
+    
+    try {
+      setIsRefreshing(true)
+      const response = await fetch(API_URL, {
+        headers: { "X-Auth-Token": API_KEY },
+      })
+
+      if (!response.ok) throw new Error("Falha ao buscar dados da API")
+      
+      const data = await response.json()
+
+      // Mapeia os jogos do banco e tenta encontrar o correspondente na API
+      const liveMatches = matches.map((dbMatch) => {
+        const apiMatch = data.matches.find((m: any) => 
+          // Cruza os nomes dos times. Ex: "CR Flamengo" (API) inclui "Flamengo" (Seu Banco)
+          (m.homeTeam.shortName.toLowerCase().includes(dbMatch.team_home.toLowerCase()) ||
+          dbMatch.team_home.toLowerCase().includes(m.homeTeam.shortName.toLowerCase())) &&
+          (m.awayTeam.shortName.toLowerCase().includes(dbMatch.team_away.toLowerCase()) ||
+          dbMatch.team_away.toLowerCase().includes(m.awayTeam.shortName.toLowerCase()))
+        )
+
+        // Se encontrou o jogo na API, atualiza o placar e o status visualmente
+        if (apiMatch) {
+          return {
+            ...dbMatch,
+            score_home: apiMatch.score.fullTime.home !== null ? apiMatch.score.fullTime.home : dbMatch.score_home,
+            score_away: apiMatch.score.fullTime.away !== null ? apiMatch.score.fullTime.away : dbMatch.score_away,
+            // Se a API diz que acabou, marca como finalizado
+            is_finished: apiMatch.status === "FINISHED" || dbMatch.is_finished,
+          }
+        }
+        return dbMatch
+      })
+
+      setMatches(liveMatches)
+      setLastUpdate(new Date())
+    } catch (error) {
+      console.error("Erro ao sincronizar placares ao vivo:", error)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
+  // Efeito para rodar o fetch inicial e depois a cada 60s
+  useEffect(() => {
+    fetchLiveScores()
+    if (API_KEY) {
+      const interval = setInterval(fetchLiveScores, 60000)
+      return () => clearInterval(interval)
+    }
+  }, []) // Remove initialMatches das dependências para não criar loop
+
 
   // Criar mapa de palpites por jogo
   const predictionsByMatch = predictions.reduce((acc, pred) => {
@@ -44,18 +114,17 @@ export function DashboardContent({ userId, matches, predictions, profiles }: Das
     ? profiles.reduce((sum, p) => sum + p.total_points, 0) / profiles.length 
     : 0
 
-  // Determinar a rodada atual
+  // Determinar a rodada atual usando o state `matches` (agora atualizado pela API)
   const upcomingMatches = matches.filter((m) => !m.is_finished && new Date(m.match_date) > new Date())
   const finishedMatches = matches.filter((m) => m.is_finished)
   
-  // Pegar a fase do próximo jogo ou do último jogo finalizado
   const currentRound = upcomingMatches.length > 0 
     ? upcomingMatches[0].phase 
     : finishedMatches.length > 0 
       ? finishedMatches[finishedMatches.length - 1].phase 
       : 'Fase de Grupos'
 
-  // Separar jogos por status
+  // Separar jogos em andamento usando o state `matches`
   const ongoingMatches = matches.filter(
     (m) => !m.is_finished && new Date(m.match_date) <= new Date()
   )
@@ -66,7 +135,6 @@ export function DashboardContent({ userId, matches, predictions, profiles }: Das
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-6 md:py-8">
-      {/* Hero com informacoes principais */}
       <DashboardHero 
         currentRound={currentRound}
         averagePoints={averagePoints}
@@ -74,7 +142,6 @@ export function DashboardContent({ userId, matches, predictions, profiles }: Das
         totalParticipants={profiles.length}
       />
 
-      {/* Estatísticas do Usuário */}
       <div className="mb-8">
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Suas Estatísticas
@@ -88,9 +155,24 @@ export function DashboardContent({ userId, matches, predictions, profiles }: Das
         />
       </div>
 
-      {/* Layout em Grid para Desktop */}
+      {/* Cabeçalho de Status Ao Vivo e Refresh */}
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4">
+         <span className="text-xs font-medium text-muted-foreground">
+            {lastUpdate
+              ? `Placares ao vivo atualizados às ${lastUpdate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`
+              : "Sincronizando com resultados reais..."}
+          </span>
+          <button
+            onClick={fetchLiveScores}
+            disabled={isRefreshing}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 rounded-full hover:bg-primary/20 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+            Sincronizar
+          </button>
+      </div>
+
       <div className="grid gap-8 lg:grid-cols-3">
-        {/* Coluna Principal */}
         <div className="lg:col-span-2">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-2 lg:w-[300px]">
@@ -104,7 +186,6 @@ export function DashboardContent({ userId, matches, predictions, profiles }: Das
               </TabsTrigger>
             </TabsList>
 
-            {/* Tab Jogos */}
             <TabsContent value="jogos" className="space-y-6">
               {ongoingMatches.length > 0 && (
                 <div>
@@ -154,7 +235,6 @@ export function DashboardContent({ userId, matches, predictions, profiles }: Das
               )}
             </TabsContent>
 
-            {/* Tab Meus Palpites */}
             <TabsContent value="palpites" className="space-y-6">
               <div>
                 {predictions.length > 0 ? (
@@ -175,12 +255,8 @@ export function DashboardContent({ userId, matches, predictions, profiles }: Das
                 ) : (
                   <div className="rounded-2xl border border-dashed py-12 text-center">
                     <ListChecks className="mx-auto h-12 w-12 text-muted-foreground/30" />
-                    <p className="mt-4 text-muted-foreground">
-                      {"Voce ainda nao fez nenhum palpite"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Va para a aba Jogos e faca seus palpites!
-                    </p>
+                    <p className="mt-4 text-muted-foreground">Você ainda não fez nenhum palpite</p>
+                    <p className="text-sm text-muted-foreground">Vá para a aba Jogos e faça seus palpites!</p>
                   </div>
                 )}
               </div>
@@ -188,12 +264,8 @@ export function DashboardContent({ userId, matches, predictions, profiles }: Das
           </Tabs>
         </div>
 
-        {/* Coluna Lateral */}
         <div className="space-y-6">
-          {/* Ranking */}
           <Ranking profiles={profiles} currentUserId={userId} compact />
-          
-          {/* Ultimos Resultados */}
           <LatestResults matches={matches} predictions={predictionsByMatch} />
         </div>
       </div>
