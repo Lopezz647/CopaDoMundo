@@ -8,7 +8,7 @@ import { StatsCards } from '@/components/stats-cards'
 import { DashboardHero } from '@/components/dashboard-hero'
 import { LatestResults } from '@/components/latest-results'
 import { Match, Prediction, ProfileWithPoints } from '@/lib/types'
-import { Calendar, Trophy, ListChecks, RefreshCw } from 'lucide-react'
+import { Calendar, ListChecks, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface DashboardContentProps {
@@ -18,29 +18,17 @@ interface DashboardContentProps {
   profiles: ProfileWithPoints[]
 }
 
-// ============================================
-// CONFIGURAÇÃO DA API
-// ============================================
 const API_KEY = process.env.NEXT_PUBLIC_API_TOKEN;
-// Certifique-se de usar a mesma rota proxy que funcionou no teste
 const API_URL = "/api/futebol/competitions/BSA/matches";
 
 export function DashboardContent({ userId, matches: initialMatches, predictions, profiles }: DashboardContentProps) {
   const router = useRouter()
-  
-  const [isMounted, setIsMounted] = useState(false)
-  
   const [activeTab, setActiveTab] = useState('jogos')
+  
   const [matches, setMatches] = useState<Match[]>(initialMatches)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
-  useEffect(() => {
-    setIsMounted(true)
-  },
-  // ============================================
-  // FUNÇÃO DE BUSCA DA API (Ao Vivo)
-  // ============================================
   const fetchLiveScores = async () => {
     if (!API_KEY) return;
     
@@ -54,23 +42,19 @@ export function DashboardContent({ userId, matches: initialMatches, predictions,
       
       const data = await response.json()
 
-      // Mapeia os jogos do banco e tenta encontrar o correspondente na API
       const liveMatches = matches.map((dbMatch) => {
         const apiMatch = data.matches.find((m: any) => 
-          // Cruza os nomes dos times. Ex: "CR Flamengo" (API) inclui "Flamengo" (Seu Banco)
           (m.homeTeam.shortName.toLowerCase().includes(dbMatch.team_home.toLowerCase()) ||
           dbMatch.team_home.toLowerCase().includes(m.homeTeam.shortName.toLowerCase())) &&
           (m.awayTeam.shortName.toLowerCase().includes(dbMatch.team_away.toLowerCase()) ||
           dbMatch.team_away.toLowerCase().includes(m.awayTeam.shortName.toLowerCase()))
         )
 
-        // Se encontrou o jogo na API, atualiza o placar e o status visualmente
         if (apiMatch) {
           return {
             ...dbMatch,
             score_home: apiMatch.score.fullTime.home !== null ? apiMatch.score.fullTime.home : dbMatch.score_home,
             score_away: apiMatch.score.fullTime.away !== null ? apiMatch.score.fullTime.away : dbMatch.score_away,
-            // Se a API diz que acabou, marca como finalizado
             is_finished: apiMatch.status === "FINISHED" || dbMatch.is_finished,
           }
         }
@@ -86,64 +70,64 @@ export function DashboardContent({ userId, matches: initialMatches, predictions,
     }
   }
 
-  // Efeito para rodar o fetch inicial e depois a cada 60s
   useEffect(() => {
     fetchLiveScores()
     if (API_KEY) {
       const interval = setInterval(fetchLiveScores, 60000)
       return () => clearInterval(interval)
     }
-  }, []) // Remove initialMatches das dependências para não criar loop
+  }, [])
 
-
-  // Criar mapa de palpites por jogo
   const predictionsByMatch = predictions.reduce((acc, pred) => {
     acc[pred.match_id] = pred
     return acc
   }, {} as Record<string, Prediction>)
 
-  // Calcular estatísticas do usuário
   const userProfile = profiles.find((p) => p.id === userId)
   const totalPoints = userProfile?.total_points || 0
   const totalPredictions = predictions.length
   const exactPredictions = predictions.filter((p) => p.points === 10).length
 
-  // Calcular posição no ranking
   const sortedProfiles = [...profiles].sort((a, b) => b.total_points - a.total_points)
   const position = sortedProfiles.findIndex((p) => p.id === userId) + 1
   const leader = sortedProfiles.length > 0 ? sortedProfiles[0] : null
 
-  // Calcular média de pontos
   const averagePoints = profiles.length > 0 
     ? profiles.reduce((sum, p) => sum + p.total_points, 0) / profiles.length 
     : 0
 
-  // Determinar a rodada atual usando o state `matches` (agora atualizado pela API)
-  const upcomingMatches = matches.filter((m) => !m.is_finished && new Date(m.match_date) > new Date())
-  const finishedMatches = matches.filter((m) => m.is_finished)
-  
-  const currentRound = upcomingMatches.length > 0 
-    ? upcomingMatches[0].phase 
-    : finishedMatches.length > 0 
-      ? finishedMatches[finishedMatches.length - 1].phase 
-      : 'Fase de Grupos'
-
-  // Separar jogos em andamento usando o state `matches`
-  const ongoingMatches = matches.filter(
-    (m) => !m.is_finished && new Date(m.match_date) <= new Date()
-  )
-
- const handlePredictionSaved = () => {
+  const handlePredictionSaved = () => {
     router.refresh()
   }
-  if (!isMounted) {
-    return null; 
+
+  // FUNÇÕES AUXILIARES PARA EVITAR ERRO DE HIDRATAÇÃO
+  const getOngoingMatches = () => {
+    return matches.filter((m) => !m.is_finished && new Date(m.match_date).getTime() <= Date.now())
   }
 
+  const getUpcomingMatches = () => {
+    return matches.filter((m) => !m.is_finished && new Date(m.match_date).getTime() > Date.now())
+  }
+  
+  const getFinishedMatches = () => {
+    return matches.filter((m) => m.is_finished)
+  }
+
+  const getCurrentRound = () => {
+    const upcoming = getUpcomingMatches()
+    if (upcoming.length > 0) return upcoming[0].phase
+    
+    const finished = getFinishedMatches()
+    if (finished.length > 0) return finished[finished.length - 1].phase
+    
+    return 'Fase de Grupos'
+  }
+
+  const ongoingMatches = getOngoingMatches()
+  const upcomingMatches = getUpcomingMatches()
+  const currentRound = getCurrentRound()
+
   return (
-    <main className="mx-auto max-w-7xl px-4 py-6 md:py-8">
-      <DashboardHero 
-//
     <main className="mx-auto max-w-7xl px-4 py-6 md:py-8">
       <DashboardHero 
         currentRound={currentRound}
@@ -165,7 +149,6 @@ export function DashboardContent({ userId, matches: initialMatches, predictions,
         />
       </div>
 
-      {/* Cabeçalho de Status Ao Vivo e Refresh */}
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4">
          <span className="text-xs font-medium text-muted-foreground">
             {lastUpdate
@@ -222,7 +205,7 @@ export function DashboardContent({ userId, matches: initialMatches, predictions,
 
               {upcomingMatches.length > 0 && (
                 <div>
-                  <h2 className="mb-4 text-lg font-semibold">Proximos Jogos</h2>
+                  <h2 className="mb-4 text-lg font-semibold">Próximos Jogos</h2>
                   <div className="grid gap-4 sm:grid-cols-2">
                     {upcomingMatches.map((match) => (
                       <MatchCard
