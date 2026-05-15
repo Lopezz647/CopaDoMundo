@@ -27,13 +27,17 @@ const API_URL = "/api/futebol/competitions/BSA/matches";
 
 export function DashboardContent({ userId, matches: initialMatches, predictions, profiles }: DashboardContentProps) {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState('jogos')
   
-  // State para guardar os jogos mesclados (Supabase + API)
+  const [isMounted, setIsMounted] = useState(false)
+  
+  const [activeTab, setActiveTab] = useState('jogos')
   const [matches, setMatches] = useState<Match[]>(initialMatches)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
+  useEffect(() => {
+    setIsMounted(true)
+  },
   // ============================================
   // FUNÇÃO DE BUSCA DA API (Ao Vivo)
   // ============================================
