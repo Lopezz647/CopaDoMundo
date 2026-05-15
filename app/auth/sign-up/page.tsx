@@ -57,7 +57,7 @@ export default function SignUpPage() {
         },
       })
       if (error) throw error
-      router.push('/auth/sign-up-success')
+     router.push('/dashboard')
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Ocorreu um erro')
     } finally {
