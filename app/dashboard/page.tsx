@@ -4,6 +4,8 @@ import { Header } from '@/components/header'
 import { DashboardContent } from '@/components/dashboard-content'
 import { Match, Prediction, Profile } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 export default async function DashboardPage() {
   const supabase = await createClient()
 
