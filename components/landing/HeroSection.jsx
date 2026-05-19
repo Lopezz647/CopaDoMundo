@@ -1,3 +1,4 @@
+"use client";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
