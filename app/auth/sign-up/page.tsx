@@ -82,16 +82,19 @@ export default function SignUpPage() {
         <div className="w-full max-w-sm">
           <div className="flex flex-col gap-6">
             {/* Logo */}
-            <div className="flex flex-col items-center gap-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
-                <Trophy className="h-7 w-7 text-primary-foreground" />
-              </div>
-              <div className="text-center">
-                <h1 className="text-xl font-bold">{"Bolao Copa DRH-1"}</h1>
-                <p className="text-sm text-muted-foreground">Copa do Mundo 2026</p>
-              </div>
-            </div>
-
+           <div className="flex flex-col items-center gap-3">
+  <div className="flex items-center justify-center">
+    <img 
+      src="/logo-esquerda.png" 
+      alt="Logo Bolão DRH-1" 
+      className="w-24 h-24 object-contain mx-auto" 
+    />
+  </div>
+  <div className="text-center">
+    <h1 className="text-xl font-bold">{"Bolão DRH-1"}</h1>
+    <p className="text-sm text-muted-foreground">Copa do Mundo 2026</p>
+  </div>
+</div>
             {/* Card */}
             <Card className="border-0 shadow-xl">
               <CardHeader className="text-center">
