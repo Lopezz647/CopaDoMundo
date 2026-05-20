@@ -62,7 +62,7 @@ export default function LoginPage() {
             {/* Logo */}
             <div className="flex flex-col items-center gap-3">
               <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
-                <<img 
+                <img 
   src="/logo-esquerda.png" 
   alt="Logo Bolão DRH-1" 
   className="w-16 h-16 object-contain mx-auto" 
