@@ -1,3 +1,4 @@
+"use client";
 import { Check, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
