@@ -45,7 +45,6 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-svh w-full flex-col bg-gradient-to-b from-primary/5 via-background to-background">
-      {/* Header */}
       <header className="p-4">
         <Link 
           href="/" 
@@ -59,20 +58,15 @@ export default function LoginPage() {
       <div className="flex flex-1 items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <div className="flex flex-col gap-6">
-            {/* Logo */}
-         <div className="flex flex-col items-center gap-3">
-  <div className="flex items-center justify-center">
-    <img 
-      src="/logo-esquerda.png" 
-      alt="Logo Bolão DRH-1" 
-      className="w-24 h-24 object-contain mx-auto" 
-    />
-  </div>
-  <div className="text-center">
-    <h1 className="text-xl font-bold">{"Bolão DRH-1"}</h1>
-    <p className="text-sm text-muted-foreground">Copa do Mundo 2026</p>
-  </div>
-</div>
+            
+            {/* Logo Única e Limpa */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex items-center justify-center">
+                <img 
+                  src="/logo-esquerda.png" 
+                  alt="Logo Bolão DRH-1" 
+                  className="w-24 h-24 object-contain mx-auto" 
+                />
               </div>
               <div className="text-center">
                 <h1 className="text-xl font-bold">{"Bolão DRH-1"}</h1>
@@ -80,7 +74,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Card */}
+            {/* Card de Login */}
             <Card className="border-0 shadow-xl">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Entrar</CardTitle>
