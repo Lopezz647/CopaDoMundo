@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Trophy, ChevronDown, Zap } from "lucide-react";
 
