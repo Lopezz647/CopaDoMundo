@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Trophy, Loader2, ArrowLeft } from 'lucide-react'
+import { Loader2, ArrowLeft } from 'lucide-react'
 
 export default function SignUpPage() {
   const [name, setName] = useState('')
@@ -32,7 +32,7 @@ export default function SignUpPage() {
     setError(null)
 
     if (password !== repeatPassword) {
-      setError('As senhas nao coincidem')
+      setError('As senhas não coincidem')
       setIsLoading(false)
       return
     }
@@ -57,7 +57,7 @@ export default function SignUpPage() {
         },
       })
       if (error) throw error
-     router.push('/dashboard')
+      router.push('/dashboard')
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Ocorreu um erro')
     } finally {
@@ -67,7 +67,6 @@ export default function SignUpPage() {
 
   return (
     <div className="flex min-h-svh w-full flex-col bg-gradient-to-b from-primary/5 via-background to-background">
-      {/* Header */}
       <header className="p-4">
         <Link 
           href="/" 
@@ -81,26 +80,26 @@ export default function SignUpPage() {
       <div className="flex flex-1 items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <div className="flex flex-col gap-6">
-            {/* Logo */}
-           <div className="flex flex-col items-center gap-3">
-  <div className="flex items-center justify-center">
-    <img 
-      src="/logo-esquerda.png" 
-      alt="Logo Bolão DRH-1" 
-      className="w-24 h-24 object-contain mx-auto" 
-    />
-  </div>
-  <div className="text-center">
-    <h1 className="text-xl font-bold">{"Bolão DRH-1"}</h1>
-    <p className="text-sm text-muted-foreground">Copa do Mundo 2026</p>
-  </div>
-</div>
-            {/* Card */}
+            
+            {/* Logo Única e Limpa */}
+            <div className="flex flex-col items-center gap-3">
+              <img 
+                src="/logo-esquerda.png" 
+                alt="Logo Bolão DRH-1" 
+                className="w-24 h-24 object-contain mx-auto" 
+              />
+              <div className="text-center">
+                <h1 className="text-xl font-bold">{"Bolão DRH-1"}</h1>
+                <p className="text-sm text-muted-foreground">Copa do Mundo 2026</p>
+              </div>
+            </div>
+
+            {/* Card de Cadastro */}
             <Card className="border-0 shadow-xl">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Cadastro</CardTitle>
                 <CardDescription>
-                  Crie sua conta para participar do bolao
+                  Crie sua conta para participar do bolão
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -135,7 +134,7 @@ export default function SignUpPage() {
                       <Input
                         id="password"
                         type="password"
-                        placeholder="Minimo 6 caracteres"
+                        placeholder="Mínimo 6 caracteres"
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -174,7 +173,7 @@ export default function SignUpPage() {
                     </Button>
                   </div>
                   <div className="mt-6 text-center text-sm">
-                    Ja tem uma conta?{' '}
+                    Já tem uma conta?{' '}
                     <Link
                       href="/auth/login"
                       className="font-medium text-primary underline underline-offset-4 hover:text-primary/80"
