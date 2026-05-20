@@ -45,7 +45,7 @@ export default function HeroSection() {
 
         {/* LOGO PRINCIPAL GRANDE À DIREITA */}
         <motion.div className="flex-1 hidden md:flex justify-center" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.2 }}>
-          <img src="/logo-principal.png" alt="Logo Principal Bolão" className="w-[400px] h-auto object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.2)]" />
+          <img src="/logo-esquerda.png" alt="Logo Principal Bolão" className="w-[400px] h-auto object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.2)]" />
         </motion.div>
 
       </div>
