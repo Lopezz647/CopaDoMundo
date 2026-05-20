@@ -7,13 +7,17 @@ import PricingCards from "@/components/landing/PricingCards";
 import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
 
-export default function Page() {
+export default function Home() {
   return (
-    <div className="bg-background min-h-screen font-sans">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main>
         <HeroSection />
-        <HowItWorks />
+        <WhyJoin />
+        <HowItWorks />  
+        <ScoringSystem />       
+        <PricingCards />
+        <FAQ />
       </main>
       <Footer />
     </div>
