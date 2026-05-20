@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Trophy, Loader2, ArrowLeft } from 'lucide-react'
+import { Loader2, ArrowLeft } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -62,10 +62,14 @@ export default function LoginPage() {
             {/* Logo */}
             <div className="flex flex-col items-center gap-3">
               <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
-                <Trophy className="h-7 w-7 text-primary-foreground" />
+                <<img 
+  src="/logo-esquerda.png" 
+  alt="Logo Bolão DRH-1" 
+  className="w-16 h-16 object-contain mx-auto" 
+/>
               </div>
               <div className="text-center">
-                <h1 className="text-xl font-bold">{"Bolao Copa DRH-1"}</h1>
+                <h1 className="text-xl font-bold">{"Bolão DRH-1"}</h1>
                 <p className="text-sm text-muted-foreground">Copa do Mundo 2026</p>
               </div>
             </div>
@@ -75,7 +79,7 @@ export default function LoginPage() {
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Entrar</CardTitle>
                 <CardDescription>
-                  Entre com seu e-mail para acessar o bolao
+                  Entre com seu e-mail para acessar o bolão
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -125,7 +129,7 @@ export default function LoginPage() {
                     </Button>
                   </div>
                   <div className="mt-6 text-center text-sm">
-                    {"Nao tem uma conta?"}{' '}
+                    {"Não tem uma conta?"}{' '}
                     <Link
                       href="/auth/sign-up"
                       className="font-medium text-primary underline underline-offset-4 hover:text-primary/80"
