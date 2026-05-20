@@ -3,7 +3,6 @@ import HeroSection from "@/components/landing/HeroSection";
 import WhyJoin from "@/components/landing/WhyJoin";
 import HowItWorks from "@/components/landing/HowItWorks";
 import ScoringSystem from "@/components/landing/ScoringSystem"; // <-- ADICIONE ESTA LINHA
-import PricingCards from "@/components/landing/PricingCards";
 import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
 
