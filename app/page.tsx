@@ -15,7 +15,6 @@ export default function Home() {
         <WhyJoin />
         <HowItWorks />  
         <ScoringSystem />       
-        <PricingCards />
         <FAQ />
       </main>
       <Footer />
