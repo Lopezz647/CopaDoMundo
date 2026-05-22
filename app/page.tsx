@@ -1,3 +1,4 @@
+"use client";
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import WhyJoin from "@/components/landing/WhyJoin";
