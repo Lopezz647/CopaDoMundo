@@ -1,72 +1,99 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { Header } from '@/components/header'
-import { DashboardContent } from '@/components/dashboard-content'
-import { Match, Prediction, Profile } from '@/lib/types'
+import React from "react";
+import { Link } from "react-router-dom";
+import { Trophy, Target, Users, BookOpen, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export default async function DashboardPage() {
-  const supabase = await createClient()
+const quickLinks = [
+  {
+    label: "Palpites",
+    desc: "Faça seus palpites nos jogos",
+    icon: Target,
+    path: "/palpites",
+    color: "text-primary",
+    bg: "bg-primary/10",
+  },
+  {
+    label: "Ranking",
+    desc: "Veja sua posição no ranking",
+    icon: Trophy,
+    path: "/ranking",
+    color: "text-accent",
+    bg: "bg-accent/10",
+  },
+  {
+    label: "Membros",
+    desc: "Conheça os participantes",
+    icon: Users,
+    path: "/membros",
+    color: "text-blue-400",
+    bg: "bg-blue-400/10",
+  },
+  {
+    label: "Regras",
+    desc: "Entenda como funciona",
+    icon: BookOpen,
+    path: "/regras",
+    color: "text-purple-400",
+    bg: "bg-purple-400/10",
+  },
+];
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/auth/login')
-  }
-
-  // Buscar perfil do usuário
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  // Buscar todos os jogos
-  const { data: matches } = await supabase
-    .from('matches')
-    .select('*')
-    .order('match_date', { ascending: true })
-
-  // Buscar palpites do usuário
-  const { data: predictions } = await supabase
-    .from('predictions')
-    .select('*')
-    .eq('user_id', user.id)
-
-  // Buscar todos os perfis com pontos
-  const { data: allProfiles } = await supabase
-    .from('profiles')
-    .select('*')
-
-  // Buscar todas as predições para calcular pontos
-  const { data: allPredictions } = await supabase
-    .from('predictions')
-    .select('*')
-
-  // Calcular pontos totais por usuário
-  const profilesWithPoints = (allProfiles || []).map((p: Profile) => {
-    const userPredictions = (allPredictions || []).filter(
-      (pred: Prediction) => pred.user_id === p.id
-    )
-    const totalPoints = userPredictions.reduce(
-      (sum: number, pred: Prediction) => sum + (pred.points || 0),
-      0
-    )
-    return { ...p, total_points: totalPoints }
-  })
-
+export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-white">
-      <Header userName={profile?.name || user.email} />
-      <DashboardContent
-        userId={user.id}
-        matches={(matches as Match[]) || []}
-        predictions={(predictions as Prediction[]) || []}
-        profiles={profilesWithPoints}
-      />
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Welcome */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-card rounded-2xl border border-border p-8"
+      >
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-14 h-14 rounded-2xl bg-primary/15 flex items-center justify-center text-3xl">
+            ⚽
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Bem-vindo ao Bolão AI</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Copa do Mundo 2026 • Faça seus palpites e dispute com seus amigos!
+            </p>
+          </div>
+        </div>
+        <Link to="/palpites">
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 mt-2">
+            Começar a palpitar
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </Link>
+      </motion.div>
+
+      {/* Quick links */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {quickLinks.map((item, idx) => (
+          <motion.div
+            key={item.path}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.1 }}
+          >
+            <Link
+              to={item.path}
+              className="bg-card rounded-xl border border-border p-5 flex items-center gap-4 hover:border-primary/30 transition-colors group block"
+            >
+              <div className={`w-11 h-11 rounded-xl ${item.bg} flex items-center justify-center`}>
+                <item.icon className={`w-5 h-5 ${item.color}`} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                  {item.label}
+                </p>
+                <p className="text-xs text-muted-foreground">{item.desc}</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </Link>
+          </motion.div>
+        ))}
+      </div>
     </div>
-  )
+  );
 }
