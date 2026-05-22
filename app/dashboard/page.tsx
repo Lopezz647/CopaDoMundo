@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { Link } from "react-router-dom";
 import { Trophy, Target, Users, BookOpen, ArrowRight } from "lucide-react";
