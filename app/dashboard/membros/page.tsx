@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { Users, User, Mail, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
