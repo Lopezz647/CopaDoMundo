@@ -9,13 +9,14 @@ const navItems = [
   { label: "Palpites", icon: "sports_soccer", path: "/dashboard/palpites" },
   { label: "Ranking", icon: "emoji_events", path: "/dashboard/ranking" },
   { label: "Membros", icon: "group", path: "/dashboard/membros" },
-  { label: "Regras", icon: "menu_book", path: "/regras" }, // Se a regra ficou na raiz, mantenha assim
+  { label: "Regras", icon: "menu_book", path: "/regras" },
   { label: "Configurações", icon: "settings", path: "/dashboard/configuracoes" },
 ];
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+
   return (
     <motion.nav
       animate={{ width: collapsed ? 64 : 180 }}
@@ -25,8 +26,11 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 flex-shrink-0">
         <div className="w-8 h-8 rounded-full bg-[#1a2e24] flex items-center justify-center flex-shrink-0">
-          <span className="material-symbols-outlined text-[#4edea3] text-[16px]">sports_soccer</span>
+          <span className="material-symbols-rounded text-[#4edea3] text-[16px]">
+            sports_soccer
+          </span>
         </div>
+
         <AnimatePresence>
           {!collapsed && (
             <motion.span
@@ -45,6 +49,7 @@ export default function Sidebar() {
       <div className="flex flex-col gap-0.5 flex-1 px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
+
           return (
             <Link
               key={item.path}
@@ -55,9 +60,15 @@ export default function Sidebar() {
                   : "text-[#8a9a8e] hover:text-[#c8d8cc] hover:bg-[#1a1a1a]"
               }`}
             >
-              <span className="material-symbols-outlined text-[20px] flex-shrink-0" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}>
+              <span
+                className="material-symbols-rounded text-[20px] flex-shrink-0"
+                style={{
+                  fontVariationSettings: "'FILL' 0, 'wght' 400",
+                }}
+              >
                 {item.icon}
               </span>
+
               <AnimatePresence>
                 {!collapsed && (
                   <motion.span
@@ -80,7 +91,7 @@ export default function Sidebar() {
         onClick={() => setCollapsed(!collapsed)}
         className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#1a1a1a] rounded-full border border-white/10 flex items-center justify-center text-[#8a9a8e] hover:text-[#4edea3] transition-colors z-10"
       >
-        <span className="material-symbols-outlined text-[13px]">
+        <span className="material-symbols-rounded text-[13px]">
           {collapsed ? "chevron_right" : "chevron_left"}
         </span>
       </button>
