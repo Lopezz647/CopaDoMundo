@@ -36,6 +36,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="bg-background">
+      <head>
+        {/* Adicione esta linha para carregar os ícones do Material Symbols */}
+        <link 
+          rel="stylesheet" 
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" 
+        />
+      </head>
       <body className="font-sans antialiased">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
