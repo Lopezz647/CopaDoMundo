@@ -14,7 +14,7 @@ export default function DateNavigator({ currentRound, onRoundChange, selectedDat
           onClick={() => onRoundChange(Math.max(1, currentRound - 1))}
           className="w-7 h-7 flex items-center justify-center text-[#8a9a8e] hover:text-[#e5e2e1] transition-colors"
         >
-          <span className="material-symbols-outlined text-[20px]">keyboard_double_arrow_left</span>
+          <span className="material-symbols-rounded text-[20px]">keyboard_double_arrow_left</span>
         </button>
 
         <div className="flex items-center gap-2">
@@ -23,7 +23,7 @@ export default function DateNavigator({ currentRound, onRoundChange, selectedDat
             className="flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold text-[#ffb95f]"
             style={{ background: "rgba(255,185,95,0.12)", border: "1px solid rgba(255,185,95,0.25)" }}
           >
-            <span className="material-symbols-outlined text-[12px]">local_fire_department</span>
+            <span className="material-symbols-rounded text-[12px]">local_fire_department</span>
             2x
           </div>
         </div>
@@ -32,7 +32,7 @@ export default function DateNavigator({ currentRound, onRoundChange, selectedDat
           onClick={() => onRoundChange(currentRound + 1)}
           className="w-7 h-7 flex items-center justify-center text-[#8a9a8e] hover:text-[#e5e2e1] transition-colors"
         >
-          <span className="material-symbols-outlined text-[20px]">keyboard_double_arrow_right</span>
+          <span className="material-symbols-rounded text-[20px]">keyboard_double_arrow_right</span>
         </button>
       </div>
 
@@ -74,7 +74,7 @@ export default function DateNavigator({ currentRound, onRoundChange, selectedDat
               <div className="flex items-center gap-1">
                 <span className="text-[10px] font-bold text-[#8a9a8e] uppercase tracking-wide">{dayName}</span>
                 {allPredicted && (
-                  <span className="material-symbols-outlined text-[11px] text-[#4edea3]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  <span className="material-symbols-rounded text-[11px] text-[#4edea3]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                 )}
                 {!allPredicted && hasPending && (
                   <div className="w-1.5 h-1.5 rounded-full bg-[#ffb95f]" />
