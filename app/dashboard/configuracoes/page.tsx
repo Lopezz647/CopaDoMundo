@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import { Settings, User, Bell, Shield, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,14 +7,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/lib/AuthContext";
-import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 
 export default function Configuracoes() {
-  const { user } = useAuth();
+  // TODO: Substituir pela chamada real do Supabase quando for integrar a Auth
+  // Exemplo: 
+  // const supabase = createClient();
+  // const { data: { user } } = await supabase.auth.getUser();
+  const user = {
+    full_name: "Usuário",
+    email: "usuario@email.com",
+  };
+
   const [notifications, setNotifications] = useState(true);
   const [reminderBefore, setReminderBefore] = useState(true);
+
+  const handleLogout = async () => {
+    // TODO: Implementar logout do Supabase aqui
+    // Exemplo:
+    // const supabase = createClient();
+    // await supabase.auth.signOut();
+    // window.location.href = '/auth/login';
+    console.log("Botão de logout clicado!");
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -94,7 +110,7 @@ export default function Configuracoes() {
         <Button
           variant="outline"
           className="border-destructive/50 text-destructive hover:bg-destructive/10 gap-2"
-          onClick={() => base44.auth.logout()}
+          onClick={handleLogout}
         >
           <LogOut className="w-4 h-4" />
           Sair da conta
