@@ -34,7 +34,7 @@ export default function LiveRanking({ user, predictions }) {
             className="w-7 h-7 rounded-full flex items-center justify-center"
             style={{ background: "rgba(78,222,163,0.15)", border: "1px solid rgba(78,222,163,0.2)" }}
           >
-            <span className="material-symbols-outlined text-[#4edea3] text-[14px]">person</span>
+            <span className="material-symbols-rounded text-[#4edea3] text-[14px]">person</span>
           </div>
 
           {/* Name + palpites */}
