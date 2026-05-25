@@ -1,8 +1,11 @@
+"use client"; 
+
 import React from "react";
-import { Trophy, Medal, User, TrendingUp } from "lucide-react";
+import { Trophy, Medal, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 
+// TODO: Integrar com a tabela de usuários/pontos no Supabase
 const MOCK_RANKING = [
   { name: "Carlos", points: 42, predictions: 24, exact: 5 },
   { name: "Maria", points: 38, predictions: 24, exact: 4 },
