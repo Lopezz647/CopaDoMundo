@@ -1,20 +1,21 @@
+"use client";
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navItems = [
-  { label: "Início", icon: "home", path: "/" },
-  { label: "Palpites", icon: "sports_soccer", path: "/palpites" },
-  { label: "Ranking", icon: "emoji_events", path: "/ranking" },
-  { label: "Membros", icon: "group", path: "/membros" },
-  { label: "Regras", icon: "menu_book", path: "/regras" },
-  { label: "Configurações", icon: "settings", path: "/configuracoes" },
+  { label: "Início", icon: "home", path: "/dashboard" },
+  { label: "Palpites", icon: "sports_soccer", path: "/dashboard/palpites" },
+  { label: "Ranking", icon: "emoji_events", path: "/dashboard/ranking" },
+  { label: "Membros", icon: "group", path: "/dashboard/membros" },
+  { label: "Regras", icon: "menu_book", path: "/regras" }, // Se a regra ficou na raiz, mantenha assim
+  { label: "Configurações", icon: "settings", path: "/dashboard/configuracoes" },
 ];
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const location = useLocation();
-
+  const pathname = usePathname();
   return (
     <motion.nav
       animate={{ width: collapsed ? 64 : 180 }}
@@ -43,11 +44,11 @@ export default function Sidebar() {
       {/* Nav Items */}
       <div className="flex flex-col gap-0.5 flex-1 px-2">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive = pathname === item.path;
           return (
             <Link
               key={item.path}
-              to={item.path}
+              href={item.path}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 ${
                 isActive
                   ? "bg-[#1e4d35] text-[#4edea3]"
