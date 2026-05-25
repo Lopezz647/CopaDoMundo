@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Trophy, Medal, User } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui-dashboard/badge";
 import { motion } from "framer-motion";
 
 // TODO: Integrar com a tabela de usuários/pontos no Supabase
