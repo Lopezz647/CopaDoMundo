@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { Users, User, Mail, Calendar } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui-dashboard/badge";
 import { motion } from "framer-motion";
 
 const MOCK_MEMBERS = [
