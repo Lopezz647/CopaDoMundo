@@ -47,7 +47,7 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
               : { background: "#222", color: "#8a9a8e", border: "1px solid rgba(255,255,255,0.06)" }
             }
           >
-            <span className="material-symbols-outlined text-[12px]">{hasPrediction ? "check_circle" : "schedule"}</span>
+            <span className="material-symbols-rounded text-[12px]">{hasPrediction ? "check_circle" : "schedule"}</span>
             {hasPrediction ? "Palpite feito" : "Sem palpite"}
           </div>
 
@@ -56,7 +56,7 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
             className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-[#4edea3]"
             style={{ background: "rgba(78,222,163,0.08)", border: "1px solid rgba(78,222,163,0.2)" }}
           >
-            <span className="material-symbols-outlined text-[12px]">schedule</span>
+            <span className="material-symbols-rounded text-[12px]">schedule</span>
             Fecha em {daysLeft} dias
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold text-[#4edea3] transition-colors hover:bg-[#4edea3]/20"
           style={{ background: "rgba(78,222,163,0.15)", border: "1px solid rgba(78,222,163,0.25)" }}
         >
-          <span className="material-symbols-outlined text-[14px]">group</span>
+          <span className="material-symbols-rounded text-[14px]">group</span>
           Quem palpitou
         </button>
       </div>
@@ -88,7 +88,7 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
                 className="w-7 h-7 rounded flex items-center justify-center text-[#8a9a8e] hover:text-white transition-colors"
                 style={{ background: "#222", border: "1px solid rgba(255,255,255,0.08)" }}
               >
-                <span className="material-symbols-outlined text-[16px]">remove</span>
+                <span className="material-symbols-rounded text-[16px]">remove</span>
               </button>
               <div
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-[20px] font-bold"
@@ -101,7 +101,7 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
                 className="w-7 h-7 rounded flex items-center justify-center text-[#8a9a8e] hover:text-white transition-colors"
                 style={{ background: "#222", border: "1px solid rgba(255,255,255,0.08)" }}
               >
-                <span className="material-symbols-outlined text-[16px]">add</span>
+                <span className="material-symbols-rounded text-[16px]">add</span>
               </button>
             </div>
           </div>
@@ -121,7 +121,7 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
                 className="w-7 h-7 rounded flex items-center justify-center text-[#8a9a8e] hover:text-white transition-colors"
                 style={{ background: "#222", border: "1px solid rgba(255,255,255,0.08)" }}
               >
-                <span className="material-symbols-outlined text-[16px]">remove</span>
+                <span className="material-symbols-rounded text-[16px]">remove</span>
               </button>
               <div
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-[20px] font-bold"
@@ -134,7 +134,7 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
                 className="w-7 h-7 rounded flex items-center justify-center text-[#8a9a8e] hover:text-white transition-colors"
                 style={{ background: "#222", border: "1px solid rgba(255,255,255,0.08)" }}
               >
-                <span className="material-symbols-outlined text-[16px]">add</span>
+                <span className="material-symbols-rounded text-[16px]">add</span>
               </button>
             </div>
           </div>
