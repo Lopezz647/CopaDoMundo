@@ -19,11 +19,11 @@ export default function PromoBanner() {
           <div className="flex flex-col gap-1.5">
             <h1 className="text-[22px] font-bold text-[#e5e2e1] leading-none">Bolão</h1>
             <div className="flex items-center gap-1.5 text-[12px] text-[#4edea3]">
-              <span className="material-symbols-outlined text-[13px]">sync</span>
+              <span className="material-symbols-rounded text-[13px]">sync</span>
               <span>Atualizações em até 2 minutos.</span>
             </div>
             <div className="flex items-center gap-1.5 text-[12px] text-[#ff6b6b]">
-              <span className="material-symbols-outlined text-[13px]">radio_button_checked</span>
+              <span className="material-symbols-rounded text-[13px]">radio_button_checked</span>
               <span>Palpites até 5min antes do jogo</span>
             </div>
           </div>
@@ -39,7 +39,7 @@ export default function PromoBanner() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold text-[#003824] transition-all"
             style={{ background: "#4edea3", boxShadow: "0 2px 10px rgba(78,222,163,0.35)" }}
           >
-            <span className="material-symbols-outlined text-[16px]">table_chart</span>
+            <span className="material-symbols-rounded text-[16px]">table_chart</span>
             Tabela
           </button>
         </div>
