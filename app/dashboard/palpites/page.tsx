@@ -1,8 +1,5 @@
 "use client";
 import React, { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
-import { useAuth } from "@/lib/AuthContext";
 import { addDays } from "date-fns";
 import { Loader2 } from "lucide-react";
 
@@ -13,6 +10,7 @@ import ProgressSection from "@/components/bolao/ProgressSection";
 import MatchCard from "@/components/bolao/MatchCard";
 import LiveRanking from "@/components/bolao/LiveRanking";
 
+// TODO: Substituir essa lista estática pelas chamadas reais da API-Football
 const MOCK_MATCHES = [
   { id: "mock-1", home_team: "Coreia do Sul", away_team: "República Tcheca", home_flag: "🇰🇷", away_flag: "🇨🇿", match_date: new Date(2026, 5, 11, 16, 0).toISOString(), round: 1 },
   { id: "mock-2", home_team: "México", away_team: "África do Sul", home_flag: "🇲🇽", away_flag: "🇿🇦", match_date: new Date(2026, 5, 11, 19, 0).toISOString(), round: 1 },
@@ -25,25 +23,16 @@ const MOCK_MATCHES = [
 ];
 
 export default function Palpites() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
+  // TODO: Substituir pela chamada real da sessão do Supabase (ex: const supabase = createClient(); const { data } = await supabase.auth.getUser(); )
+  const user = { email: "usuario@email.com", full_name: "Usuário Teste" };
+  
   const [currentRound, setCurrentRound] = useState(1);
   const [selectedDate, setSelectedDate] = useState(new Date(2026, 5, 15));
-
-  const { data: dbMatches, isLoading: loadingMatches } = useQuery({
-    queryKey: ["matches"],
-    queryFn: () => base44.entities.Match.list(),
-    initialData: [],
-  });
-
-  const { data: predictions } = useQuery({
-    queryKey: ["predictions", user?.email],
-    queryFn: () => base44.entities.Prediction.filter({ user_email: user?.email }),
-    initialData: [],
-    enabled: !!user?.email,
-  });
-
-  const matches = dbMatches.length > 0 ? dbMatches : MOCK_MATCHES;
+  
+  // TODO: Ao integrar com o backend, 'matches' virá da API-Football e 'predictions' virá do Supabase
+  const [matches, setMatches] = useState(MOCK_MATCHES);
+  const [predictions, setPredictions] = useState<any[]>([]); // Estado local temporário para a interface
+  const [loadingMatches, setLoadingMatches] = useState(false);
 
   const dates = useMemo(() =>
     Array.from({ length: 7 }, (_, i) => addDays(new Date(2026, 5, 11), i)),
@@ -56,28 +45,24 @@ export default function Palpites() {
   );
 
   const predictionMap = useMemo(() => {
-    const map = {};
+    const map: Record<string, any> = {};
     predictions.forEach(p => { map[p.match_id] = p; });
     return map;
   }, [predictions]);
 
-  const createPrediction = useMutation({
-    mutationFn: (data) => base44.entities.Prediction.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["predictions"] }),
-  });
-
-  const updatePrediction = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Prediction.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["predictions"] }),
-  });
-
-  const handlePredictionChange = (matchId, homeScore, awayScore) => {
-    const existing = predictionMap[matchId];
-    if (existing) {
-      updatePrediction.mutate({ id: existing.id, data: { home_score: homeScore, away_score: awayScore } });
-    } else {
-      createPrediction.mutate({ match_id: matchId, home_score: homeScore, away_score: awayScore, user_email: user?.email });
-    }
+  // Função simulada para atualizar a interface. No futuro, conectará ao Supabase.
+  const handlePredictionChange = (matchId: string, homeScore: number, awayScore: number) => {
+    console.log(`TODO Supabase: Salvar palpite -> Jogo ${matchId} | ${homeScore} x ${awayScore}`);
+    
+    setPredictions(prev => {
+      const existingIndex = prev.findIndex(p => p.match_id === matchId);
+      if (existingIndex >= 0) {
+        const newPredictions = [...prev];
+        newPredictions[existingIndex] = { ...newPredictions[existingIndex], home_score: homeScore, away_score: awayScore };
+        return newPredictions;
+      }
+      return [...prev, { match_id: matchId, home_score: homeScore, away_score: awayScore, user_email: user.email }];
+    });
   };
 
   return (
