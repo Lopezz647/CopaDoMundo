@@ -6,7 +6,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    // A mágica acontece aqui: A classe "dashboard-theme" ativa o design escuro e verde APENAS no painel
+    // Adicionamos o 'dashboard-theme' de volta aqui para puxar o fundo preto e verde!
     <div className="dashboard-theme flex h-screen w-full bg-background text-foreground overflow-hidden">
       
       <Sidebar />
