@@ -1,5 +1,5 @@
 import React from "react";
-import { Progress } from "@/components/ui/progress";
+import { Progress } from "@/components/ui-dashboard/progress";
 
 export default function PredictionProgress({ made, total, multiplier }) {
   const percentage = total > 0 ? Math.round((made / total) * 100) : 0;
