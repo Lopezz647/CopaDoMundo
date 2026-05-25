@@ -52,4 +52,4 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json({ error: 'Erro ao buscar jogos' }, { status: 500 });
   }
-}
+} 
