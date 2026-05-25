@@ -26,7 +26,7 @@ export default function ProgressSection({ made, total, multiplier }) {
         />
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="material-symbols-outlined text-[14px] text-[#ffb95f]">local_fire_department</span>
+        <span className="material-symbols-rounded text-[14px] text-[#ffb95f]">local_fire_department</span>
         <span className="text-[12px] text-[#ffb95f]">Rodada com multiplicador {multiplier}x — cada palpite vale mais!</span>
       </div>
     </div>
