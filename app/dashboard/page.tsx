@@ -10,7 +10,7 @@ const quickLinks = [
     label: "Palpites",
     desc: "Faça seus palpites nos jogos",
     icon: Target,
-    path: "/palpites",
+    path: "/dashboard/palpites",
     color: "text-primary",
     bg: "bg-primary/10",
   },
@@ -18,7 +18,7 @@ const quickLinks = [
     label: "Ranking",
     desc: "Veja sua posição no ranking",
     icon: Trophy,
-    path: "/ranking",
+    path: "/dashboard/ranking",
     color: "text-accent",
     bg: "bg-accent/10",
   },
@@ -26,7 +26,7 @@ const quickLinks = [
     label: "Membros",
     desc: "Conheça os participantes",
     icon: Users,
-    path: "/membros",
+    path: "/dashboard/membros",
     color: "text-blue-400",
     bg: "bg-blue-400/10",
   },
@@ -54,13 +54,13 @@ export default function Home() {
             ⚽
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Bem-vindo ao Bolão AI</h1>
+            <h1 className="text-2xl font-bold text-foreground">Bem-vindo ao SIGATRAN</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Copa do Mundo 2026 • Faça seus palpites e dispute com seus amigos!
             </p>
           </div>
         </div>
-        <Link to="/palpites">
+        <Link href="/dashboard/palpites">
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 mt-2">
             Começar a palpitar
             <ArrowRight className="w-4 h-4" />
@@ -78,7 +78,7 @@ export default function Home() {
             transition={{ delay: idx * 0.1 }}
           >
             <Link
-              to={item.path}
+              href={item.path}
               className="bg-card rounded-xl border border-border p-5 flex items-center gap-4 hover:border-primary/30 transition-colors group block"
             >
               <div className={`w-11 h-11 rounded-xl ${item.bg} flex items-center justify-center`}>
