@@ -2,12 +2,14 @@
 
 import React, { useState } from "react";
 import { Settings, User, Bell, Shield, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { motion } from "framer-motion";
+
+import { Button } from "@/components/ui-dashboard/button";
+import { Input } from "@/components/ui-dashboard/input";
+import { Label } from "@/components/ui-dashboard/label";
+import { Switch } from "@/components/ui-dashboard/switch";
+import { Separator } from "@/components/ui-dashboard/separator";
+
+import { motion } from "framer-motion"
 
 export default function Configuracoes() {
   // TODO: Substituir pela chamada real do Supabase quando for integrar a Auth
