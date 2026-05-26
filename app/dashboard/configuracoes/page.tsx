@@ -1,7 +1,12 @@
+Aqui está o código completo e corrigido para o arquivo **app/dashboard/configuracoes/page.tsx**.
+A função handleLogout foi atualizada para chamar o método signOut() do Supabase e, em seguida, utilizar o useRouter do Next.js para redirecionar o usuário imediatamente de volta para a tela de início (/). Além disso, aproveitamos para conectar os campos de Nome e Email para puxarem os dados reais da sessão ativa.
+```tsx
 "use client";
 
-import React, { useState } from "react";
-import { Settings, User, Bell, Shield, LogOut } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Settings, User, Bell, Shield, LogOut, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 import { Button } from "@/components/ui-dashboard/button";
 import { Input } from "@/components/ui-dashboard/input";
@@ -9,29 +14,65 @@ import { Label } from "@/components/ui-dashboard/label";
 import { Switch } from "@/components/ui-dashboard/switch";
 import { Separator } from "@/components/ui-dashboard/separator";
 
-import { motion } from "framer-motion"
+import { motion } from "framer-motion";
 
 export default function Configuracoes() {
-  // TODO: Substituir pela chamada real do Supabase quando for integrar a Auth
-  // Exemplo: 
-  // const supabase = createClient();
-  // const { data: { user } } = await supabase.auth.getUser();
-  const user = {
-    full_name: "Usuário",
-    email: "usuario@email.com",
-  };
+  const supabase = createClient();
+  const router = useRouter();
+
+  // Estados para carregar os dados reais da sessão
+  const [profile, setProfile] = useState<any>(null);
+  const [userEmail, setUserEmail] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const [notifications, setNotifications] = useState(true);
   const [reminderBefore, setReminderBefore] = useState(true);
 
+  useEffect(() => {
+    async function getUserData() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          setUserEmail(user.email || "");
+          
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("name")
+            .eq("id", user.id)
+            .single();
+            
+          setProfile(profileData);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados de configuração:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    getUserData();
+  }, [supabase]);
+
+  // Função responsável por encerrar a sessão e redirecionar
   const handleLogout = async () => {
-    // TODO: Implementar logout do Supabase aqui
-    // Exemplo:
-    // const supabase = createClient();
-    // await supabase.auth.signOut();
-    // window.location.href = '/auth/login';
-    console.log("Botão de logout clicado!");
+    try {
+      // 1. Encerra a sessão no Supabase Auth
+      await supabase.auth.signOut();
+      
+      // 2. Redireciona o usuário para a página de início
+      router.push("/");
+    } catch (error) {
+      console.error("Erro ao tentar deslogar:", error);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -40,7 +81,7 @@ export default function Configuracoes() {
         <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
       </div>
 
-      {/* Profile */}
+      {/* Perfil */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -54,7 +95,7 @@ export default function Configuracoes() {
           <div>
             <Label className="text-xs text-muted-foreground">Nome</Label>
             <Input
-              value={user?.full_name || ""}
+              value={profile?.name || "Membro"}
               disabled
               className="mt-1 bg-muted border-border text-foreground"
             />
@@ -62,7 +103,7 @@ export default function Configuracoes() {
           <div>
             <Label className="text-xs text-muted-foreground">Email</Label>
             <Input
-              value={user?.email || ""}
+              value={userEmail}
               disabled
               className="mt-1 bg-muted border-border text-foreground"
             />
@@ -70,7 +111,7 @@ export default function Configuracoes() {
         </div>
       </motion.div>
 
-      {/* Notifications */}
+      {/* Notificações */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -98,7 +139,7 @@ export default function Configuracoes() {
         </div>
       </motion.div>
 
-      {/* Account */}
+      {/* Conta */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -121,3 +162,5 @@ export default function Configuracoes() {
     </div>
   );
 }
+
+```
