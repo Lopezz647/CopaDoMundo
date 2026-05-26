@@ -30,7 +30,6 @@ export default function Palpites() {
       try {
         setLoading(true);
         
-        // Rota alterada para BSA
         const response = await fetch("/api/futebol/competitions/BSA/matches"); 
         const matchData = await response.json();
 
@@ -42,7 +41,6 @@ export default function Palpites() {
           home_flag: m.homeTeam.crest || "🏳️",
           away_flag: m.awayTeam.crest || "🏳️",
           match_date: m.utcDate,
-          // Converte a ronda da API (matchday) para número
           round: m.matchday || 1
         }));
 
@@ -60,7 +58,16 @@ export default function Palpites() {
             .eq("user_id", user.id);
 
           if (userPredictions) {
-            setPredictions(userPredictions);
+            // CORREÇÃO: Traduz os dados do banco (score_home) para o formato que a interface (MatchCard) precisa usar internamente
+            const mappedPredictions = userPredictions.map((p: any) => ({
+              id: p.id,
+              user_id: p.user_id,
+              match_id: p.match_id,
+              home_score: p.score_home, 
+              away_score: p.score_away,
+              points: p.points
+            }));
+            setPredictions(mappedPredictions);
           }
         }
 
@@ -81,40 +88,29 @@ export default function Palpites() {
   }, []);
 
   // 2. Inteligência de Sincronização Dinâmica
-  
-  // Lista de todas as datas únicas que possuem jogos no campeonato
   const allUniqueDates = useMemo(() => {
     const datesMap = matches.map(m => new Date(m.match_date).toDateString());
     return Array.from(new Set(datesMap)).map(d => new Date(d)).sort((a, b) => a.getTime() - b.getTime());
   }, [matches]);
 
-  // Função disparada quando o usuário clica para alterar a Rodada/Fase
   const handleRoundChange = (roundNumber: number) => {
     setCurrentRound(roundNumber);
-
-    // Encontra o primeiro jogo pertencente a essa nova rodada selecionada
     const firstMatchOfRound = matches.find(m => m.round === roundNumber);
     if (firstMatchOfRound) {
-      // Altera automaticamente a data ativa para o primeiro dia dessa fase
       setSelectedDate(new Date(firstMatchOfRound.match_date));
     }
   };
 
-  // Função disparada quando o usuário clica diretamente em uma Data específica
   const handleDateChange = (newDate: Date) => {
     setSelectedDate(newDate);
-
-    // Descobre qual é a rodada/fase do primeiro jogo que acontece nessa data
     const matchOnThisDate = matches.find(
       m => new Date(m.match_date).toDateString() === newDate.toDateString()
     );
     if (matchOnThisDate && matchOnThisDate.round !== currentRound) {
-      // Sincroniza o cabeçalho mudando o nome da Fase/Rodada sozinho!
       setCurrentRound(matchOnThisDate.round);
     }
   };
 
-  // Filtra os jogos que vão de fato aparecer na tela com base no dia ativo
   const filteredMatches = useMemo(() => {
     return matches.filter(
       m => new Date(m.match_date).toDateString() === selectedDate.toDateString()
@@ -127,22 +123,22 @@ export default function Palpites() {
     return map;
   }, [predictions]);
 
-  // === FUNÇÃO CORRIGIDA AQUI ===
+  // === FUNÇÃO DE SALVAMENTO CORRIGIDA E ADAPTADA ===
   const handlePredictionChange = async (matchId: string, homeScore: number, awayScore: number) => {
     if (!userId) return;
 
     const targetMatch = matches.find(m => m.id === matchId);
     if (!targetMatch) return;
 
-    // Verificação de tempo com tratamento seguro de fuso horário
+    // Bloqueio de tempo (segurança de 15 minutos)
     const matchTime = new Date(targetMatch.match_date).getTime();
-    const fifteenMinutes = 15 * 60 * 1000;
-    if (matchTime - Date.now() < fifteenMinutes) {
+    const tempoAteOJogo = matchTime - Date.now();
+    if (tempoAteOJogo > 0 && tempoAteOJogo < 15 * 60 * 1000) {
       console.warn("Palpites encerrados para este jogo.");
       return; 
     }
 
-    // Atualização otimista do Estado (Interface responde rápido)
+    // Atualização otimista do Estado local (mantém resposta visual instantânea)
     setPredictions(prev => {
       const existingIndex = prev.findIndex(p => p.match_id === matchId);
       if (existingIndex >= 0) {
@@ -158,50 +154,46 @@ export default function Palpites() {
     });
 
     try {
-      // Tenta o Upsert padrão (Forçando números inteiros)
-      const { error } = await supabase
+      // 1. Procura se o registro já existe de forma segura usando maybeSingle (Evita Erro 406)
+      const { data: existing, error: selectError } = await supabase
         .from("predictions")
-        .upsert({
-          user_id: userId,
-          match_id: matchId,
-          home_score: Number(homeScore),
-          away_score: Number(awayScore),
-          updated_at: new Date().toISOString()
-        }, { onConflict: "user_id,match_id" });
+        .select("id")
+        .eq("user_id", userId)
+        .eq("match_id", matchId)
+        .maybeSingle(); 
 
-      // Se der erro de restrição única/onConflict no Supabase, executa o Plano B (Garante o salvamento)
-      if (error) {
-        console.warn("Upsert falhou, aplicando salvamento alternativo...");
-        
-        const { data: existing } = await supabase
+      if (selectError) {
+        console.error("Erro ao verificar palpite existente:", selectError.message);
+        return;
+      }
+
+      // 2. Executa a gravação usando os nomes exatos das suas colunas do banco (Evita Erro 400)
+      if (existing?.id) {
+        // Se já existe, atualiza as colunas corretas
+        const { error: updateError } = await supabase
           .from("predictions")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("match_id", matchId)
-          .single();
+          .update({
+            score_home: Number(homeScore),
+            score_away: Number(awayScore)
+          })
+          .eq("id", existing.id);
 
-        if (existing?.id) {
-          await supabase
-            .from("predictions")
-            .update({
-              home_score: Number(homeScore),
-              away_score: Number(awayScore),
-              updated_at: new Date().toISOString()
-            })
-            .eq("id", existing.id);
-        } else {
-          await supabase
-            .from("predictions")
-            .insert({
-              user_id: userId,
-              match_id: matchId,
-              home_score: Number(homeScore),
-              away_score: Number(awayScore)
-            });
-        }
+        if (updateError) console.error("Erro ao atualizar dados:", updateError.message);
+      } else {
+        // Se não existe, insere a nova linha sem passar a coluna inexistente updated_at
+        const { error: insertError } = await supabase
+          .from("predictions")
+          .insert({
+            user_id: userId,
+            match_id: matchId,
+            score_home: Number(homeScore),
+            score_away: Number(awayScore)
+          });
+
+        if (insertError) console.error("Erro ao inserir dados:", insertError.message);
       }
     } catch (err) {
-      console.error("Erro crítico ao salvar palpite no banco:", err);
+      console.error("Erro crítico no fluxo de salvamento:", err);
     }
   };
 
