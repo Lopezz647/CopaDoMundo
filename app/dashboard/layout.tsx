@@ -5,12 +5,22 @@ import Sidebar from "@/components/layout/Sidebar";
 import { useAuth } from "@/lib/AuthContext";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import GhostGuard from "@/components/layout/GhostGuard";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <GhostGuard>
+      {/* Tudo que já estava dentro do seu layout fica aqui dentro */}
+      <div className="flex h-screen bg-black text-white">
+         <Sidebar /> 
+         <main className="flex-1 overflow-y-auto">
+            {children}
+         </main>
+      </div>
+    </GhostGuard>
+  );
+}
   const { isAuthenticated, isLoadingAuth } = useAuth();
   const router = useRouter();
 
