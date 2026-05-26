@@ -9,7 +9,7 @@ export async function GET() {
   }
 
   try {
-    const res = await fetch('https://api.football-data.org/v4/competitions/BSA/matches', {
+    const res = await fetch('https://api.football-data.org/v4/competitions/WC/matches', {
       headers: { 'X-Auth-Token': API_KEY },
       next: { revalidate: 60 }
     })
