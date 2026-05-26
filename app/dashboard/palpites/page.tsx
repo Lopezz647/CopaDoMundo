@@ -24,16 +24,16 @@ export default function Palpites() {
   const [predictions, setPredictions] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-    // 1. Carregar os jogos reais da API e os palpites do Supabase
+      // 1. Carregar os jogos reais da API e os palpites do Supabase
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
         
-        -- OBRIGATÓRIO ALTERAR PARA BSA (A SUA ROTA ATUAL) --
+        // Rota alterada para BSA
         const response = await fetch("/api/futebol/competitions/BSA/matches"); 
         const matchData = await response.json();
-        
+
         // Mapeia os dados da API para o formato esperado pelos MatchCards
         const formattedMatches = (matchData.matches || []).map((m: any) => ({
           id: String(m.id),
