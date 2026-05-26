@@ -23,8 +23,7 @@ export default function DateNavigator({ currentRound, onRoundChange, selectedDat
       const selectedDateStr = new Date(selectedDate).toDateString();
       
       // Busca o elemento do botão da data selecionada dentro do container usando um data-attribute
-      const selectedButton = container.querySelector(`]`);
-
+const selectedButton = container.querySelector(`[data-date="${selectedDateStr}"]`);
       if (selectedButton) {
         // Cálculos para centralizar o botão
         const containerWidth = container.offsetWidth;
