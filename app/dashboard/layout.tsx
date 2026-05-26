@@ -25,13 +25,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
 
   useEffect(() => {
-    // Se a checagem terminou e a pessoa NÃO está logada, redireciona para o login
+
     if (!isLoadingAuth && !isAuthenticated) {
       router.push("/login");
     }
   }, [isAuthenticated, isLoadingAuth, router]);
 
-  // Enquanto o Supabase pensa, mostra a tela de carregamento
+
   if (isLoadingAuth) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -40,12 +40,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  // Evita que a tela do dashboard "pisque" antes de jogar o intruso pro login
+
   if (!isAuthenticated) {
     return null; 
   }
 
-  // Se tudo deu certo e o Supabase confirmou, renderiza o sistema:
+
   return (
     <div className="dashboard-theme flex h-screen w-full bg-background text-foreground overflow-hidden">
       <Sidebar />
