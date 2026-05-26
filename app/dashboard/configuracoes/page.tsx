@@ -1,6 +1,4 @@
-Aqui está o código completo e corrigido para o arquivo **app/dashboard/configuracoes/page.tsx**.
-A função handleLogout foi atualizada para chamar o método signOut() do Supabase e, em seguida, utilizar o useRouter do Next.js para redirecionar o usuário imediatamente de volta para a tela de início (/). Além disso, aproveitamos para conectar os campos de Nome e Email para puxarem os dados reais da sessão ativa.
-```tsx
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -162,5 +160,3 @@ export default function Configuracoes() {
     </div>
   );
 }
-
-```
