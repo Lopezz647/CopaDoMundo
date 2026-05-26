@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PredictionsModal from "./PredictionsModal";
 
 export default function MatchCard({ match, prediction, onPredictionChange }) {
   const [homeScore, setHomeScore] = useState<number | null>(prediction?.home_score ?? null);
   const [awayScore, setAwayScore] = useState<number | null>(prediction?.away_score ?? null);
+  
+  // Estados para o micro-feedback (animação do X)
+  const [saveStatus, setSaveStatus] = useState<"idle" | "loading" | "success">("idle");
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Estados para controle dinâmico do tempo
   const [timeLeftStr, setTimeLeftStr] = useState("");
@@ -19,7 +23,7 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
   useEffect(() => {
     const matchTime = new Date(match.match_date).getTime();
     const fifteenMinutesInMs = 15 * 60 * 1000;
-    const lockTime = matchTime - fifteenMinutesInMs; // Limite exato para apostar
+    const lockTime = matchTime - fifteenMinutesInMs;
 
     const calculateCountdown = () => {
       const now = Date.now();
@@ -55,23 +59,45 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
 
   const hasPrediction = homeScore !== null && awayScore !== null;
 
-  // CORREÇÃO AQUI: Garante que ambos os placares saiam de 'null' para '0' no primeiro clique
-  const handleChange = (side: "home" | "away", delta: number) => {
+  // Lógica com salvamento Assíncrono para ativar a animação
+  const handleChange = async (side: "home" | "away", delta: number) => {
     if (isLocked) return; 
     
     const currentHome = homeScore ?? 0;
     const currentAway = awayScore ?? 0;
 
+    let nextHome = currentHome;
+    let nextAway = currentAway;
+
     if (side === "home") {
-      const nextHome = Math.max(0, currentHome + delta);
+      nextHome = Math.max(0, currentHome + delta);
       setHomeScore(nextHome);
-      setAwayScore(currentAway); // Inicializa o outro time localmente para não ficar '-'
-      onPredictionChange?.(match.id, nextHome, currentAway);
+      setAwayScore(currentAway);
     } else {
-      const nextAway = Math.max(0, currentAway + delta);
+      nextAway = Math.max(0, currentAway + delta);
       setAwayScore(nextAway);
-      setHomeScore(currentHome); // Inicializa o outro time localmente para não ficar '-'
-      onPredictionChange?.(match.id, currentHome, nextAway);
+      setHomeScore(currentHome);
+    }
+
+    // Inicia a animação de "Carregando"
+    setSaveStatus("loading");
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    try {
+      // Aguarda o banco de dados salvar
+      await onPredictionChange?.(match.id, nextHome, nextAway);
+      
+      // Quando sucesso, muda para o check verde
+      setSaveStatus("success");
+      
+      // Retorna para o "X" após 2 segundos
+      timeoutRef.current = setTimeout(() => {
+        setSaveStatus("idle");
+      }, 2000);
+
+    } catch (error) {
+      // Em caso de falha de conexão, reseta imediatamente
+      setSaveStatus("idle");
     }
   };
 
@@ -81,21 +107,19 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
         className={`rounded-xl border overflow-hidden transition-all duration-300 ${isLocked ? "opacity-75" : ""}`}
         style={{ background: "#181818", borderColor: isLocked ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.05)" }}
       >
-        {/* Top status bar (Informações da Rodada e Botão) */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-black/10">
           <div className="flex items-center gap-2">
-            {/* Status do palpite */}
-            <div
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
-              style={hasPrediction
-                ? { background: "rgba(78,222,163,0.12)", color: "#4edea3", border: "1px solid rgba(78,222,163,0.25)" }
-                : { background: "#222", color: "#8a9a8e", border: "1px solid rgba(255,255,255,0.06)" }}
-            >
-              <span className="material-symbols-rounded text-[12px]">{hasPrediction ? "check_circle" : "help"}</span>
-              {hasPrediction ? "Palpite feito" : "Sem palpite"}
-            </div>
+            
+            {/* Oculta o selo quando já houver um palpite feito */}
+            {!hasPrediction && (
+              <div
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-[#222] text-[#8a9a8e] border border-white/5"
+              >
+                <span className="material-symbols-rounded text-[12px]">help</span>
+                Sem palpite
+              </div>
+            )}
 
-            {/* Status do Fechamento Dinâmico */}
             <div
               className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all ${
                 isLocked 
@@ -110,7 +134,6 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
             </div>
           </div>
 
-          {/* Botão "Quem palpitou" estilo Neon Glow */}
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold text-[#4edea3] bg-[#4edea3]/5 border border-[#4edea3]/20 transition-all duration-300 shadow-[0_0_15px_rgba(78,222,163,0.08)] hover:shadow-[0_0_25px_rgba(78,222,163,0.3)] hover:border-[#4edea3] hover:bg-[#4edea3] hover:text-black active:scale-95 cursor-pointer"
@@ -120,11 +143,9 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
           </button>
         </div>
 
-        {/* Match Body */}
         <div className="px-6 py-6">
           <div className="flex items-center justify-center gap-6">
             
-            {/* Home Team */}
             <div className="flex flex-col items-center gap-3 w-[120px]">
               <div className="w-14 h-10 flex items-center justify-center text-4xl leading-none">
                 {match.home_flag?.startsWith("http") ? (
@@ -157,9 +178,19 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
               </div>
             </div>
 
-            <div className="text-[#333] font-bold text-xl select-none">×</div>
+            {/* Container Central (X animado) */}
+            <div className="w-8 h-8 flex items-center justify-center relative">
+              {saveStatus === "idle" && (
+                <div className="text-[#333] font-bold text-xl select-none transition-all duration-300">×</div>
+              )}
+              {saveStatus === "loading" && (
+                <div className="w-4 h-4 rounded-full border-2 border-[#4edea3]/30 border-t-[#4edea3] animate-spin transition-all duration-300"></div>
+              )}
+              {saveStatus === "success" && (
+                <span className="material-symbols-rounded text-[#4edea3] text-[18px] transition-all duration-300 drop-shadow-[0_0_8px_rgba(78,222,163,0.5)]">check_circle</span>
+              )}
+            </div>
 
-            {/* Away Team */}
             <div className="flex flex-col items-center gap-3 w-[120px]">
               <div className="w-14 h-10 flex items-center justify-center text-4xl leading-none">
                 {match.away_flag?.startsWith("http") ? (
@@ -196,7 +227,6 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
         </div>
       </div>
 
-      {/* Renderização do Modal */}
       <PredictionsModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
