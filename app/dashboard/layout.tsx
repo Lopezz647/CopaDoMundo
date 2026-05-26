@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import Sidebar from "@/components/layout/Sidebar";
-import { useAuth } from "@/path/to/your/AuthContext"; // 🚨 Ajuste este caminho!
+import { useAuth } from "@/lib/AuthContext";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
