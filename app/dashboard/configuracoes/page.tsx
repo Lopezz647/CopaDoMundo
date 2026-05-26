@@ -51,14 +51,14 @@ export default function Configuracoes() {
     getUserData();
   }, [supabase]);
 
-  // Função responsável por encerrar a sessão e redirecionar
+    // Função responsável por encerrar a sessão e redirecionar de forma limpa
   const handleLogout = async () => {
     try {
-      // 1. Encerra a sessão no Supabase Auth
+      // 1. Encerra de fato a sessão no Supabase Auth
       await supabase.auth.signOut();
       
-      // 2. Redireciona o usuário para a página de início
-      router.push("/");
+      // 2. Força um reload completo limpando o cache e indo para a página inicial
+      window.location.href = "/";
     } catch (error) {
       console.error("Erro ao tentar deslogar:", error);
     }
