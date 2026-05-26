@@ -10,130 +10,99 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
   }, [prediction]);
 
   const hasPrediction = homeScore !== null && awayScore !== null;
-
-  const daysLeft = Math.max(0, Math.ceil(
-    (new Date(match.match_date) - new Date()) / (1000 * 60 * 60 * 24)
-  ));
+  const matchTime = new Date(match.match_date).getTime();
+  const now = Date.now();
+  const fifteenMinutesInMs = 15 * 60 * 1000;
+  const isLocked = matchTime - now < fifteenMinutesInMs;
+  const daysLeft = Math.max(0, Math.ceil((matchTime - now) / (1000 * 60 * 60 * 24)));
 
   const handleChange = (side, delta) => {
+    if (isLocked) return;
     if (side === "home") {
       const next = Math.max(0, (homeScore ?? 0) + delta);
       setHomeScore(next);
-      const aw = awayScore ?? 0;
-      setAwayScore(aw);
-      onPredictionChange?.(match.id, next, aw);
+      onPredictionChange?.(match.id, next, awayScore ?? 0);
     } else {
       const next = Math.max(0, (awayScore ?? 0) + delta);
       setAwayScore(next);
-      const hw = homeScore ?? 0;
-      setHomeScore(hw);
-      onPredictionChange?.(match.id, hw, next);
+      onPredictionChange?.(match.id, homeScore ?? 0, next);
     }
   };
 
   return (
     <div
-      className="rounded-xl border border-white/5 overflow-hidden"
-      style={{ background: "#181818" }}
+      className={`rounded-xl border overflow-hidden transition-opacity ${isLocked ? "opacity-85" : ""}`}
+      style={{ background: "#181818", borderColor: isLocked ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.05)" }}
     >
-      {/* Top status bar */}
+      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
         <div className="flex items-center gap-2">
-          {/* Sem palpite / Palpite feito pill */}
-          <div
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold"
-            style={hasPrediction
-              ? { background: "rgba(78,222,163,0.12)", color: "#4edea3", border: "1px solid rgba(78,222,163,0.2)" }
-              : { background: "#222", color: "#8a9a8e", border: "1px solid rgba(255,255,255,0.06)" }
-            }
-          >
-            <span className="material-symbols-rounded text-[12px]">{hasPrediction ? "check_circle" : "schedule"}</span>
-            {hasPrediction ? "Palpite feito" : "Sem palpite"}
-          </div>
-
-          {/* Fecha em X dias pill */}
-          <div
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold text-[#4edea3]"
-            style={{ background: "rgba(78,222,163,0.08)", border: "1px solid rgba(78,222,163,0.2)" }}
-          >
-            <span className="material-symbols-rounded text-[12px]">schedule</span>
-            Fecha em {daysLeft} dias
-          </div>
+          {isLocked ? (
+            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
+              <span className="material-symbols-rounded text-[12px]">lock</span>
+              Encerrado
+            </div>
+          ) : (
+            <div
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+              style={hasPrediction
+                ? { background: "rgba(78,222,163,0.12)", color: "#4edea3", border: "1px solid rgba(78,222,163,0.2)" }
+                : { background: "#222", color: "#8a9a8e", border: "1px solid rgba(255,255,255,0.06)" }}
+            >
+              <span className="material-symbols-rounded text-[12px]">{hasPrediction ? "check_circle" : "schedule"}</span>
+              {hasPrediction ? "Palpite feito" : "Sem palpite"}
+            </div>
+          )}
         </div>
-
-        {/* Quem palpitou */}
-        <button
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold text-[#4edea3] transition-colors hover:bg-[#4edea3]/20"
-          style={{ background: "rgba(78,222,163,0.15)", border: "1px solid rgba(78,222,163,0.25)" }}
-        >
-          <span className="material-symbols-rounded text-[14px]">group</span>
-          Quem palpitou
-        </button>
       </div>
 
-      {/* Match body */}
+      {/* Match Content */}
       <div className="px-6 py-6">
-        <div className="flex items-start justify-center gap-6">
-          {/* Home team */}
-          <div className="flex flex-col items-center gap-3 w-[130px]">
-            {/* Flag */}
+        <div className="flex items-center justify-center gap-6">
+          
+          {/* Home Team */}
+          <div className="flex flex-col items-center gap-3 w-[120px]">
             <div className="w-14 h-10 flex items-center justify-center text-4xl leading-none">
-              {match.home_flag || "🏳️"}
+              {match.home_flag?.startsWith('http') ? (
+                <img src={match.home_flag} alt={match.home_team} className="h-10 object-contain" />
+              ) : (
+                match.home_flag || "🏳️"
+              )}
             </div>
-            <span className="text-[13px] font-semibold text-[#e5e2e1] text-center leading-tight">{match.home_team}</span>
-            {/* Score controls */}
+            <span className="text-[13px] font-semibold text-[#e5e2e1] text-center">{match.home_team}</span>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleChange("home", -1)}
-                className="w-7 h-7 rounded flex items-center justify-center text-[#8a9a8e] hover:text-white transition-colors"
-                style={{ background: "#222", border: "1px solid rgba(255,255,255,0.08)" }}
-              >
+              <button onClick={() => handleChange("home", -1)} disabled={isLocked} className="w-7 h-7 rounded bg-[#222] flex items-center justify-center hover:bg-[#333] disabled:opacity-30">
                 <span className="material-symbols-rounded text-[16px]">remove</span>
               </button>
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center text-[20px] font-bold"
-                style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)", color: homeScore !== null ? "#e5e2e1" : "#444" }}
-              >
-                {homeScore !== null ? homeScore : "-"}
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[20px] font-bold bg-[#111]">
+                {homeScore ?? "-"}
               </div>
-              <button
-                onClick={() => handleChange("home", 1)}
-                className="w-7 h-7 rounded flex items-center justify-center text-[#8a9a8e] hover:text-white transition-colors"
-                style={{ background: "#222", border: "1px solid rgba(255,255,255,0.08)" }}
-              >
+              <button onClick={() => handleChange("home", 1)} disabled={isLocked} className="w-7 h-7 rounded bg-[#222] flex items-center justify-center hover:bg-[#333] disabled:opacity-30">
                 <span className="material-symbols-rounded text-[16px]">add</span>
               </button>
             </div>
           </div>
 
-          {/* X separator */}
-          <div className="flex items-center justify-center mt-8 text-[#444] font-bold text-[15px] w-8">×</div>
+          <div className="text-[#444] font-bold text-xl">×</div>
 
-          {/* Away team */}
-          <div className="flex flex-col items-center gap-3 w-[130px]">
+          {/* Away Team */}
+          <div className="flex flex-col items-center gap-3 w-[120px]">
             <div className="w-14 h-10 flex items-center justify-center text-4xl leading-none">
-              {match.away_flag || "🏳️"}
+              {match.away_flag?.startsWith('http') ? (
+                <img src={match.away_flag} alt={match.away_team} className="h-10 object-contain" />
+              ) : (
+                match.away_flag || "🏳️"
+              )}
             </div>
-            <span className="text-[13px] font-semibold text-[#e5e2e1] text-center leading-tight">{match.away_team}</span>
+            <span className="text-[13px] font-semibold text-[#e5e2e1] text-center">{match.away_team}</span>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleChange("away", -1)}
-                className="w-7 h-7 rounded flex items-center justify-center text-[#8a9a8e] hover:text-white transition-colors"
-                style={{ background: "#222", border: "1px solid rgba(255,255,255,0.08)" }}
-              >
+              <button onClick={() => handleChange("away", -1)} disabled={isLocked} className="w-7 h-7 rounded bg-[#222] flex items-center justify-center hover:bg-[#333] disabled:opacity-30">
                 <span className="material-symbols-rounded text-[16px]">remove</span>
               </button>
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center text-[20px] font-bold"
-                style={{ background: "#111", border: "1px solid rgba(255,255,255,0.08)", color: awayScore !== null ? "#e5e2e1" : "#444" }}
-              >
-                {awayScore !== null ? awayScore : "-"}
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[20px] font-bold bg-[#111]">
+                {awayScore ?? "-"}
               </div>
-              <button
-                onClick={() => handleChange("away", 1)}
-                className="w-7 h-7 rounded flex items-center justify-center text-[#8a9a8e] hover:text-white transition-colors"
-                style={{ background: "#222", border: "1px solid rgba(255,255,255,0.08)" }}
-              >
+              <button onClick={() => handleChange("away", 1)} disabled={isLocked} className="w-7 h-7 rounded bg-[#222] flex items-center justify-center hover:bg-[#333] disabled:opacity-30">
                 <span className="material-symbols-rounded text-[16px]">add</span>
               </button>
             </div>
