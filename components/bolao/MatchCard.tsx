@@ -110,5 +110,5 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
         </div>
       </div>
     </div>
-  );
+);
 }
