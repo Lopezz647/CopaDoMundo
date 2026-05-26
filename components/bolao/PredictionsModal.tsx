@@ -65,16 +65,29 @@ export default function PredictionsModal({ isOpen, onClose, match, currentPredic
           </div>
         </div>
 
-        {/* Status Badge */}
+        {/* Status Badge - Regra de Privacidade Aplicada */}
         <div 
-          className="px-3 py-1.5 rounded-full text-[12px] font-bold border"
+          className="px-3 py-1.5 flex items-center gap-1.5 rounded-full text-[12px] font-bold border"
           style={{
             background: hasPredicted ? "rgba(78,222,163,0.1)" : "rgba(255,185,95,0.05)",
             color: hasPredicted ? "#4edea3" : "#ffb95f",
             borderColor: hasPredicted ? "rgba(78,222,163,0.2)" : "rgba(255,185,95,0.2)"
           }}
         >
-          {hasPredicted ? `${user.prediction.home_score} x ${user.prediction.away_score}` : "Não palpitou"}
+          {hasPredicted ? (
+            user.isMe ? (
+              // Se for você, mostra o seu placar
+              `${user.prediction.home_score} x ${user.prediction.away_score}`
+            ) : (
+              // Se for outro membro, mostra o cadeado ocultando o placar
+              <>
+                <span className="material-symbols-rounded text-[14px]">lock</span>
+                Oculto
+              </>
+            )
+          ) : (
+            "Não palpitou"
+          )}
         </div>
       </div>
     );
