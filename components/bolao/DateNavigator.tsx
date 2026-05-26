@@ -82,29 +82,30 @@ const selectedButton = container.querySelector(`[data-date="${selectedDateStr}"]
       >
         {dates.map((date, idx) => {
           const d = new Date(date);
-          const dateString = d.toDateString(); // Criamos o ID único para a busca do scroll
+          const dateString = d.toDateString(); 
           const dayName = DAY_NAMES[d.getDay()];
           const dayNum = d.getDate();
           const month = MONTH_NAMES[d.getMonth()];
-          const isSelected = selectedDate && dateString === d.toDateString();
+          
+          // CORREÇÃO: Agora compara a data do botão com a data selecionada de verdade!
+          const isSelected = selectedDate && new Date(selectedDate).toDateString() === dateString;
 
-          const matchesOnDay = matches.filter(m => new Date(m.match_date).toDateString() === d.toDateString());
+          const matchesOnDay = matches.filter(m => new Date(m.match_date).toDateString() === dateString);
           const allPredicted = matchesOnDay.length > 0 && matchesOnDay.every(m => predictionMatchIds.has(m.id));
           const hasPending = matchesOnDay.length > 0 && matchesOnDay.some(m => !predictionMatchIds.has(m.id));
 
-          // Base de estilo comum para os botões
+          // Removido o flex-1 para manter o tamanho exato no scroll
           const baseButtonClasses = "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg relative min-w-[70px] flex-shrink-0";
 
           if (isSelected) {
             return (
               <button
                 key={idx}
-                data-date={dateString} // ADICIONADO PARA LÓGICA DE SCROLL
+                data-date={dateString}
                 onClick={() => onDateChange(d)}
-                className={`${baseButtonClasses} flex-1`}
+                className={baseButtonClasses}
                 style={{ background: "rgba(78,222,163,0.12)", border: "1px solid rgba(78,222,163,0.35)" }}
               >
-                {/* orange dot top-right */}
                 <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#ffb95f]" style={{ boxShadow: "0 0 6px rgba(255,185,95,0.9)" }} />
                 <span className="text-[10px] font-bold text-[#4edea3] uppercase tracking-wide">{dayName}</span>
                 <span className="text-[13px] font-bold text-[#4edea3]">{dayNum} <span className="text-[10px] font-medium">{month}</span></span>
@@ -115,9 +116,9 @@ const selectedButton = container.querySelector(`[data-date="${selectedDateStr}"]
           return (
             <button
               key={idx}
-              data-date={dateString} // ADICIONADO PARA LÓGICA DE SCROLL
+              data-date={dateString}
               onClick={() => onDateChange(d)}
-              className={`${baseButtonClasses} transition-colors hover:bg-white/5 flex-1`}
+              className={`${baseButtonClasses} transition-colors hover:bg-white/5`}
             >
               <div className="flex items-center gap-1">
                 <span className="text-[10px] font-bold text-[#8a9a8e] uppercase tracking-wide">{dayName}</span>
