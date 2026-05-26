@@ -24,14 +24,14 @@ export default function Palpites() {
   const [predictions, setPredictions] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // 1. Carregar os jogos reais da API e os palpites do Supabase
+    // 1. Carregar os jogos reais da API e os palpites do Supabase
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
         
-        // Busca os jogos reais da Copa através da rota interna da API
-        const response = await fetch("/api/futebol/competitions/WC/matches"); 
+        -- OBRIGATÓRIO ALTERAR PARA BSA (A SUA ROTA ATUAL) --
+        const response = await fetch("/api/futebol/competitions/BSA/matches"); 
         const matchData = await response.json();
         
         // Mapeia os dados da API para o formato esperado pelos MatchCards
@@ -42,8 +42,8 @@ export default function Palpites() {
           home_flag: m.homeTeam.crest || "🏳️",
           away_flag: m.awayTeam.crest || "🏳️",
           match_date: m.utcDate,
-          // Converte o matchday/estágio da API para um número de rodada legível
-          round: m.matchday || (m.stage === "ROUND_OF_16" ? 4 : m.stage === "QUARTER_FINALS" ? 5 : 6)
+          // Converte a ronda da API (matchday) para número
+          round: m.matchday || 1
         }));
 
         setMatches(formattedMatches);
@@ -64,7 +64,7 @@ export default function Palpites() {
           }
         }
 
-        // Define as datas iniciais com base nos primeiros jogos encontrados
+        // Define as datas iniciais com base nos primeiros jogos encontrados da API
         if (formattedMatches.length > 0) {
           const firstMatchDate = new Date(formattedMatches[0].match_date);
           setSelectedDate(firstMatchDate);
