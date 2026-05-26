@@ -173,8 +173,9 @@ export default function Palpites() {
         <UserHeader />
       </div>
      <div className="mt-6 grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
-        <div className="flex flex-col gap-6"> {/* <--- O problema está aqui */}
+        <div className="flex flex-col gap-6 min-w-0">
           <PromoBanner />
+          <DateNavigator/>
 
           {/* O navegador recebe os novos controladores inteligentes de sincronização */}
           <DateNavigator
