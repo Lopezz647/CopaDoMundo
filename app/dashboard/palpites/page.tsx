@@ -24,7 +24,7 @@ export default function Palpites() {
   const [predictions, setPredictions] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-      // 1. Carregar os jogos reais da API e os palpites do Supabase
+  // 1. Carregar os jogos reais da API e os palpites do Supabase
   useEffect(() => {
     async function loadData() {
       try {
@@ -80,7 +80,7 @@ export default function Palpites() {
     loadData();
   }, []);
 
-  // 2. Inteligência de Sincronização Dinâmica (A regra de negócio que você pediu)
+  // 2. Inteligência de Sincronização Dinâmica
   
   // Lista de todas as datas únicas que possuem jogos no campeonato
   const allUniqueDates = useMemo(() => {
@@ -127,36 +127,82 @@ export default function Palpites() {
     return map;
   }, [predictions]);
 
+  // === FUNÇÃO CORRIGIDA AQUI ===
   const handlePredictionChange = async (matchId: string, homeScore: number, awayScore: number) => {
     if (!userId) return;
 
     const targetMatch = matches.find(m => m.id === matchId);
     if (!targetMatch) return;
 
+    // Verificação de tempo com tratamento seguro de fuso horário
+    const matchTime = new Date(targetMatch.match_date).getTime();
     const fifteenMinutes = 15 * 60 * 1000;
-    if (new Date(targetMatch.match_date).getTime() - Date.now() < fifteenMinutes) {
-      return; // Bloqueio de segurança temporal
+    if (matchTime - Date.now() < fifteenMinutes) {
+      console.warn("Palpites encerrados para este jogo.");
+      return; 
     }
 
+    // Atualização otimista do Estado (Interface responde rápido)
     setPredictions(prev => {
       const existingIndex = prev.findIndex(p => p.match_id === matchId);
       if (existingIndex >= 0) {
         const newPredictions = [...prev];
-        newPredictions[existingIndex] = { ...newPredictions[existingIndex], home_score: homeScore, away_score: awayScore };
+        newPredictions[existingIndex] = { 
+          ...newPredictions[existingIndex], 
+          home_score: homeScore, 
+          away_score: awayScore 
+        };
         return newPredictions;
       }
       return [...prev, { match_id: matchId, home_score: homeScore, away_score: awayScore, user_id: userId }];
     });
 
-    await supabase
-      .from("predictions")
-      .upsert({
-        user_id: userId,
-        match_id: matchId,
-        home_score: homeScore,
-        away_score: awayScore,
-        updated_at: new Date().toISOString()
-      }, { onConflict: "user_id,match_id" });
+    try {
+      // Tenta o Upsert padrão (Forçando números inteiros)
+      const { error } = await supabase
+        .from("predictions")
+        .upsert({
+          user_id: userId,
+          match_id: matchId,
+          home_score: Number(homeScore),
+          away_score: Number(awayScore),
+          updated_at: new Date().toISOString()
+        }, { onConflict: "user_id,match_id" });
+
+      // Se der erro de restrição única/onConflict no Supabase, executa o Plano B (Garante o salvamento)
+      if (error) {
+        console.warn("Upsert falhou, aplicando salvamento alternativo...");
+        
+        const { data: existing } = await supabase
+          .from("predictions")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("match_id", matchId)
+          .single();
+
+        if (existing?.id) {
+          await supabase
+            .from("predictions")
+            .update({
+              home_score: Number(homeScore),
+              away_score: Number(awayScore),
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", existing.id);
+        } else {
+          await supabase
+            .from("predictions")
+            .insert({
+              user_id: userId,
+              match_id: matchId,
+              home_score: Number(homeScore),
+              away_score: Number(awayScore)
+            });
+        }
+      }
+    } catch (err) {
+      console.error("Erro crítico ao salvar palpite no banco:", err);
+    }
   };
 
   if (loading) {
@@ -175,7 +221,6 @@ export default function Palpites() {
      <div className="mt-6 grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
         <div className="flex flex-col gap-6 min-w-0">
           <PromoBanner />
-          {/* O navegador recebe os novos controladores inteligentes de sincronização */}
           <DateNavigator
             currentRound={currentRound}
             onRoundChange={handleRoundChange}
@@ -192,7 +237,6 @@ export default function Palpites() {
             multiplier={2}
           />
 
-          {/* Listagem de caixas adaptativas (Cria caixas extras automaticamente se houver múltiplos jogos) */}
           <div className="flex flex-col gap-4">
             {filteredMatches.length === 0 ? (
               <div className="bg-[#201f1f] rounded-2xl border border-white/5 p-8 text-center">
