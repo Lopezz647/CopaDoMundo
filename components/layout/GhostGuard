@@ -1,57 +1,26 @@
-"use client";
+import React from "react";
+import Sidebar from "@/components/layout/Sidebar";
+import GhostGuard from "@/components/layout/GhostGuard"; // Importando o nosso bloqueador de fantasmas
 
-import React, { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { Loader2 } from "lucide-react";
-
-export default function GhostGuard({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
-  const [isSafe, setIsSafe] = useState(false);
-
-  useEffect(() => {
-    async function verifyProfile() {
-      // 1. Verifica quem é o usuário tentando entrar
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        window.location.href = "/auth/login";
-        return;
-      }
-
-      // 2. DETECTOR DE FANTASMA: Procura ele na tabela de perfis reais
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", user.id)
-        .single();
-
-      // 3. O Julgamento: Se não tem perfil, é fantasma. Mata a sessão e expulsa!
-      if (!profile) {
-        console.warn("Usuário Fantasma Detectado! Expulsando do sistema...");
-        await supabase.auth.signOut();
-        window.location.href = "/auth/login";
-        return;
-      }
-
-      // 4. Se chegou aqui, o usuário existe de verdade no bolão
-      setIsSafe(true);
-    }
-
-    verifyProfile();
-  }, [supabase]);
-
-  // Tela de bloqueio enquanto verifica (evita que a tela pisque com dados errados)
-  if (!isSafe) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#0d0d0d]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-[#4edea3]" />
-          <p className="text-[#8a9a8e] text-sm font-medium">Validando segurança da conta...</p>
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    // O GhostGuard envolve todo o painel. Se for fantasma, ele barra aqui!
+    <GhostGuard>
+      <div className="dashboard-theme flex h-screen w-full bg-background text-foreground overflow-hidden">
+        
+        <Sidebar />
+        
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+            {children}
+          </main>
         </div>
+        
       </div>
-    );
-  }
-
-  // Se for seguro, libera o acesso à Dashboard
-  return <>{children}</>;
+    </GhostGuard>
+  );
 }
