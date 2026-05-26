@@ -48,10 +48,7 @@ export default function DateNavigator({ currentRound, onRoundChange, selectedDat
           <span className="material-symbols-rounded text-[20px]">keyboard_double_arrow_right</span>
         </button>
       </div>
-
-      {/* Date row (Modificado para Scroll Horizontal) */}
-      {/* O overflow-x-auto permite a rolagem. scrollbar-hide esconde a barra visual para um look mais limpo */}
-      <div className="flex px-2 py-3 gap-1 overflow-x-auto overflow-y-hidden whitespace-nowrap scrollbar-hide">
+      <div className="flex px-2 py-3 gap-1 overflow-x-auto overflow-y-hidden whitespace-nowrap w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {dates.map((date, idx) => {
           const d = new Date(date);
           const dayName = DAY_NAMES[d.getDay()];
