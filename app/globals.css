@@ -80,4 +80,52 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 }
+@layer utilities {
+  /* Classe para o container de datas */
+  .custom-scrollbar-dates {
+    /* Ativa o scroll horizontal */
+    overflow-x: auto; 
+    /* Esconde overflow vertical para segurança */
+    overflow-y: hidden; 
+    /* Previne quebra de linha nas datas */
+    whitespace-nowrap: true; 
 
+    /* === Configuração para Navegadores Webkit (Chrome, Safari, Edge) === */
+    
+    /* 1. Define a altura da barra de rolagem horizontal */
+    &::-webkit-scrollbar {
+      height: 6px; 
+    }
+
+    /* 2. O Trilho (fundo) da barra (invisível por padrão) */
+    &::-webkit-scrollbar-track {
+      background: transparent;
+      border-radius: 99px;
+    }
+
+    /* 3. O 'Polegar' (a parte arrastável) - Invisível por padrão */
+    &::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 99px;
+      /* Transição suave para aparecer */
+      transition: background-color 0.3s ease; 
+    }
+
+    /* 4. Estado de Hover: Mostra a barra quando o mouse entra no container */
+    &:hover::-webkit-scrollbar-thumb {
+      /* Cor ligeiramente mais clara que #181818. Experimente #2a2a2a ou #333 */
+      background: #2a2a2a; 
+    }
+  }
+
+  /* === Fallback para Firefox (limitado, não suporta hover/arredondamento completo via CSS) === */
+  @-moz-document url-prefix() {
+    .custom-scrollbar-dates {
+      scrollbar-width: thin;
+      scrollbar-color: transparent transparent; /* default hidden */
+    }
+    .custom-scrollbar-dates:hover {
+      scrollbar-color: #2a2a2a transparent; /* mostra no hover */
+    }
+  }
+}
