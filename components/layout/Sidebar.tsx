@@ -36,14 +36,18 @@ export default function Sidebar() {
 
           <AnimatePresence>
             {!collapsed && (
-              <motion.span
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="text-[15px] font-bold text-[#e5e2e1] whitespace-nowrap"
+                className="whitespace-nowrap flex items-center"
               >
-                Bolão DRH-1
-              </motion.span>
+                <img 
+                  src="/logo-esquerda.png" 
+                  alt="Bolão DRH-1" 
+                  className="w-12 h-12 md:w-14 md:h-14 object-contain" 
+                />
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
