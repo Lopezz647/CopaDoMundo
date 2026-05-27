@@ -54,7 +54,7 @@ export default function Home() {
             ⚽
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Bem-vindo ao SIGATRAN</h1>
+            <h1 className="text-2xl font-bold text-foreground">Bem-vindo ao Bolão DRH-1</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Copa do Mundo 2026 • Faça seus palpites e dispute com seus amigos!
             </p>
