@@ -63,3 +63,52 @@ export default function Sidebar() {
       <div className="flex flex-col gap-0.5 flex-1 px-2 mt-2">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
+
+          return (
+            <Link
+              key={item.path}
+              href={item.path}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 ${
+                isActive
+                  ? "bg-[#1e4d35] text-[#4edea3]"
+                  : "text-[#8a9a8e] hover:text-[#c8d8cc] hover:bg-[#1a1a1a]"
+              }`}
+            >
+              <span
+                className="material-symbols-rounded text-[20px] flex-shrink-0"
+                style={{
+                  fontVariationSettings: "'FILL' 0, 'wght' 400",
+                }}
+              >
+                {item.icon}
+              </span>
+
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-[14px] font-medium whitespace-nowrap"
+                  >
+                    {item.label}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Collapse toggle */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#1a1a1a] rounded-full border border-white/10 flex items-center justify-center text-[#8a9a8e] hover:text-[#4edea3] transition-colors z-30"
+      >
+        <span className="material-symbols-rounded text-[13px]">
+          {collapsed ? "chevron_right" : "chevron_left"}
+        </span>
+      </button>
+    </motion.nav>
+  );
+}
