@@ -32,7 +32,7 @@ export default function Sidebar() {
       className={`${collapsed ? "w-8 h-8" : "w-auto h-12 md:h-14"} flex-shrink-0 object-contain transition-all duration-300 ease-in-out`} 
     />
   </div>
-</motion.nav>
+
         {/* Nav Items */}
         <div className="flex flex-col gap-0.5 flex-1 px-2 mt-2">
           {navItems.map((item) => {
