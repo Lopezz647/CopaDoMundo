@@ -50,9 +50,7 @@ export default function Home() {
         className="bg-card rounded-2xl border border-border p-8"
       >
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-14 h-14 rounded-2xl bg-primary/15 flex items-center justify-center text-3xl">
-            ⚽
-          </div>
+           <img src="/logo-esquerda.png" alt="Bolão DRH-1" className="w-12 h-12 md:w-14 md:h-14 object-contain" />
           <div>
             <h1 className="text-2xl font-bold text-foreground">Bem-vindo ao Bolão DRH-1</h1>
             <p className="text-sm text-muted-foreground mt-1">
