@@ -1,9 +1,9 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
-import { Users, User, Trophy, Loader2 } from "lucide-react";
-import { Badge } from "@/components/ui-dashboard/badge";
-import { motion } from "framer-motion";
+import { Users, User, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { motion } from "framer-motion";
 
 export default function Membros() {
   const supabase = createClient();
@@ -12,92 +12,60 @@ export default function Membros() {
 
   useEffect(() => {
     async function fetchMembers() {
-      try {
-        // Busca todos os perfis cadastrados no Supabase e ordena por nome
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .order("name", { ascending: true });
+      // Busca a lista real de usuários com suas fotos organizados em ordem alfabética
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, name, avatar_url")
+        .order("name", { ascending: true });
 
-        if (error) throw error;
-        
-        if (data) {
-          setMembers(data);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar membros:", error);
-      } finally {
-        setLoading(false);
-      }
+      if (data) setMembers(data);
+      setLoading(false);
     }
-
     fetchMembers();
-  }, []);
+  }, [supabase]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center p-12">
+        <Loader2 className="animate-spin text-primary w-8 h-8" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Users className="w-6 h-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Membros</h1>
-        </div>
-        <Badge variant="outline" className="text-muted-foreground border-white/10">
-          {loading ? (
-            <Loader2 className="w-3 h-3 animate-spin inline mr-1" />
-          ) : (
-            members.length
-          )}{" "}
-          participantes
-        </Badge>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <Users className="w-6 h-6 text-primary" />
+        <h1 className="text-2xl font-bold text-foreground">Membros do Bolão</h1>
       </div>
 
-      <div className="grid gap-3">
-        {loading ? (
-          // Efeito de carregamento enquanto busca os dados
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary" />
-            <p className="text-sm">Carregando membros do grupo...</p>
-          </div>
-        ) : members.length === 0 ? (
-          // Caso não tenha ninguém (o que é raro, pois você estará lá)
-          <div className="bg-card rounded-xl border border-border p-8 text-center">
-            <p className="text-muted-foreground">Nenhum membro encontrado.</p>
-          </div>
-        ) : (
-          // Lista real de membros
-          members.map((member, idx) => (
-            <motion.div
-              key={member.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: Math.min(idx * 0.05, 0.5) }} // Limita o delay para listas muito grandes
-              className="bg-card rounded-xl border border-border p-4 flex items-center justify-between hover:border-primary/30 transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                {/* Avatar Dinâmico */}
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center border border-white/5 overflow-hidden">
-                  {member.avatar_url ? (
-                    <img src={member.avatar_url} alt={member.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-5 h-5 text-muted-foreground" />
-                  )}
-                </div>
-                
-                <div>
-                  <p className="text-base font-semibold text-foreground flex items-center gap-2">
-                    {member.name || "Usuário sem nome"}
-                  </p>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="text-xs font-medium flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-accent/10 text-accent border border-accent/20">
-                      <Trophy className="w-3 h-3" />
-                      {member.total_points || 0} pontos
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))
-        )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {members.map((member, idx) => (
+          <motion.div
+            key={member.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.05 }}
+            className="bg-card rounded-xl border border-border p-4 flex items-center gap-4 hover:bg-muted/30 transition-colors"
+          >
+            {/* Exibição da foto com alinhamento focado na face */}
+            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center overflow-hidden border border-white/5 flex-shrink-0">
+              {member.avatar_url ? (
+                <img 
+                  src={member.avatar_url} 
+                  alt={member.name} 
+                  className="w-full h-full object-cover object-[center_25%]" 
+                />
+              ) : (
+                <User className="w-6 h-6 text-muted-foreground" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground truncate">{member.name || "Competidor"}</p>
+              <p className="text-xs text-muted-foreground">Participante ativo</p>
+            </div>
+          </motion.div>
+        ))}
       </div>
     </div>
   );
