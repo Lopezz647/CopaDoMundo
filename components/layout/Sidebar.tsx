@@ -37,7 +37,6 @@ export default function Sidebar() {
               <img 
                 src="/logo-esquerda.png" 
                 alt="Bolão DRH-1" 
-                // Definimos uma altura menor (h-8) para caber no menu colapsado
                 className="w-auto h-8 object-contain" 
               />
             </motion.div>
