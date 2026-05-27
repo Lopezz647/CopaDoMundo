@@ -122,7 +122,18 @@ export default function Palpites() {
     predictions.forEach(p => { map[p.match_id] = p; });
     return map;
   }, [predictions]);
+  
+// Lógica para filtrar apenas os jogos e palpites da Rodada/Fase atual
+  const matchesInCurrentRound = useMemo(() => {
+    return matches.filter(m => m.round === currentRound);
+  }, [matches, currentRound]);
 
+  const predictionsInCurrentRound = useMemo(() => {
+    return predictions.filter(p => 
+      matchesInCurrentRound.some(m => m.id === String(p.match_id))
+    );
+  }, [predictions, matchesInCurrentRound]);
+  
   // === FUNÇÃO DE SALVAMENTO CORRIGIDA E ADAPTADA ===
   const handlePredictionChange = async (matchId: string, homeScore: number, awayScore: number) => {
     if (!userId) return;
@@ -224,9 +235,9 @@ export default function Palpites() {
           />
 
           <ProgressSection
-            made={predictions.length}
-            total={matches.length}
-            multiplier={2}
+            made={predictionsInCurrentRound.length}
+            total={matchesInCurrentRound.length}
+            multiplier={2} // Mantenha o multiplicador que você já usa
           />
 
           <div className="flex flex-col gap-4">
