@@ -24,26 +24,16 @@ export default function Sidebar() {
       // Agora o Sidebar faz parte do Flexbox e empurra o conteúdo!
       className="relative h-screen bg-[#0d0d0d] z-20 flex flex-col flex-shrink-0 border-r border-white/5"
     >
-      {/* Container para esconder o conteúdo que passa da largura (sem cortar o botão) */}
-      <div className="flex flex-col h-full overflow-hidden w-full">
-        {/* Logo */}
+      {/* Container da Logo */}
+        <div className="flex items-center justify-start px-4 py-5 flex-shrink-0 h-[80px]">
+          <div className="flex items-center justify-center">
+             <img 
+               src="/logo-esquerda.png" 
+               alt="Bolão DRH-1" 
+               // A largura se ajusta automaticamente ao estado do menu
+               className={`${collapsed ? "w-8 h-8" : "w-auto h-12 md:h-14"} object-contain transition-all duration-300`} 
+             />
           </div>
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="whitespace-nowrap flex items-center"
-              >
-                <img 
-                  src="/logo-esquerda.png" 
-                  alt="Bolão DRH-1" 
-                  className="w-12 h-12 md:w-14 md:h-14 object-contain" 
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* Nav Items */}
