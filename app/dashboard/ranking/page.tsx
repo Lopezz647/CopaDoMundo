@@ -57,7 +57,7 @@ export default function Ranking() {
           >
             <Medal className={`w-8 h-8 mx-auto mb-2 ${medalColors[idx]}`} />
             <div className="w-12 h-12 rounded-full bg-muted mx-auto flex items-center justify-center mb-2 overflow-hidden border border-white/5">
-              {player.avatar_url ? <img src={player.avatar_url} /> : <User className="w-6 h-6 text-muted-foreground" />}
+              {player.avatar_url ? <img src={player.avatar_url} alt={player.name} className="w-full h-full object-cover object-center" /> : <User className="w-6 h-6 text-muted-foreground" />}
             </div>
             <p className="text-sm font-bold text-foreground truncate">{player.name}</p>
             <p className="text-2xl font-bold text-primary mt-1">{player.total_points}</p>
@@ -86,7 +86,7 @@ export default function Ranking() {
             <span className="text-sm font-bold text-muted-foreground">{idx + 1}º</span>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                {player.avatar_url ? <img src={player.avatar_url} /> : <User className="w-4 h-4 text-muted-foreground" />}
+                {player.avatar_url ? <img src={player.avatar_url} alt={player.name} className="w-full h-full object-cover object-center" /> : <User className="w-4 h-4 text-muted-foreground" />}
               </div>
               <span className="text-sm font-medium text-foreground flex items-center gap-2">
                 {player.name}
