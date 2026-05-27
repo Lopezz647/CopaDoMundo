@@ -42,7 +42,7 @@ export default function Sidebar() {
                 exit={{ opacity: 0 }}
                 className="text-[15px] font-bold text-[#e5e2e1] whitespace-nowrap"
               >
-                Bolão AI
+                Bolão DRH-1
               </motion.span>
             )}
           </AnimatePresence>
