@@ -27,7 +27,9 @@ export default function Sidebar() {
       {/* Container para esconder o conteúdo que passa da largura (sem cortar o botão) */}
       <div className="flex flex-col h-full overflow-hidden w-full">
         {/* Logo */}
-  
+        <div className="flex items-center gap-3 px-4 py-5 flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-[#1a2e24] flex items-center justify-center flex-shrink-0">
+          </div>
           <AnimatePresence>
             {!collapsed && (
               <motion.div
