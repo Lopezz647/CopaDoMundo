@@ -16,25 +16,28 @@ export default function Ranking() {
 
   useEffect(() => {
     async function fetchRanking() {
-      // 1. Pega o usuário logado
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
 
-      // 2. Busca os perfis ordenados pelos pontos
-      // Nota: Para ter "Palpites" e "Exatos", precisaríamos de uma query mais complexa,
-      // mas vamos listar por pontos conforme sua tabela profiles.
-      const { data, error } = await supabase
+      // Adicionado 'avatar_url' explicitamente no select
+      const { data } = await supabase
         .from("profiles")
         .select("id, name, total_points, avatar_url")
         .order("total_points", { ascending: false });
-
+      
       if (data) setRanking(data);
       setLoading(false);
     }
     fetchRanking();
-  }, []);
+  }, [supabase]);
 
-  if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin text-primary" /></div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center p-12">
+        <Loader2 className="animate-spin text-primary w-8 h-8" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -57,10 +60,18 @@ export default function Ranking() {
           >
             <Medal className={`w-8 h-8 mx-auto mb-2 ${medalColors[idx]}`} />
             <div className="w-12 h-12 rounded-full bg-muted mx-auto flex items-center justify-center mb-2 overflow-hidden border border-white/5">
-              {player.avatar_url ? <img src={player.avatar_url} alt={player.name} className="w-full h-full object-cover object-center" /> : <User className="w-6 h-6 text-muted-foreground" />}
+              {player.avatar_url ? (
+                <img 
+                  src={player.avatar_url} 
+                  alt={player.name} 
+                  className="w-full h-full object-cover object-[center_25%]" 
+                />
+              ) : (
+                <User className="w-6 h-6 text-muted-foreground" />
+              )}
             </div>
             <p className="text-sm font-bold text-foreground truncate">{player.name}</p>
-            <p className="text-2xl font-bold text-primary mt-1">{player.total_points}</p>
+            <p className="text-2xl font-bold text-primary mt-1">{player.total_points || 0}</p>
             <p className="text-xs text-muted-foreground">pontos</p>
           </motion.div>
         ))}
@@ -86,7 +97,15 @@ export default function Ranking() {
             <span className="text-sm font-bold text-muted-foreground">{idx + 1}º</span>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                {player.avatar_url ? <img src={player.avatar_url} alt={player.name} className="w-full h-full object-cover object-center" /> : <User className="w-4 h-4 text-muted-foreground" />}
+                {player.avatar_url ? (
+                  <img 
+                    src={player.avatar_url} 
+                    alt={player.name} 
+                    className="w-full h-full object-cover object-[center_25%]" 
+                  />
+                ) : (
+                  <User className="w-4 h-4 text-muted-foreground" />
+                )}
               </div>
               <span className="text-sm font-medium text-foreground flex items-center gap-2">
                 {player.name}
@@ -95,7 +114,7 @@ export default function Ranking() {
                 )}
               </span>
             </div>
-            <span className="text-sm font-bold text-center text-foreground">{player.total_points}</span>
+            <span className="text-sm font-bold text-center text-foreground">{player.total_points || 0}</span>
           </motion.div>
         ))}
       </div>
