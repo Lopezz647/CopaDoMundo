@@ -1,8 +1,7 @@
-
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Settings, User, Bell, Shield, LogOut, Loader2 } from "lucide-react";
+import React, { useEffect, useState, useRef } from "react";
+import { Settings, User, Bell, Shield, LogOut, Loader2, Camera } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -17,11 +16,12 @@ import { motion } from "framer-motion";
 export default function Configuracoes() {
   const supabase = createClient();
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Estados para carregar os dados reais da sessão
   const [profile, setProfile] = useState<any>(null);
   const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(true);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const [notifications, setNotifications] = useState(true);
   const [reminderBefore, setReminderBefore] = useState(true);
@@ -30,20 +30,17 @@ export default function Configuracoes() {
     async function getUserData() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        
         if (user) {
           setUserEmail(user.email || "");
-          
           const { data: profileData } = await supabase
             .from("profiles")
-            .select("name")
+            .select("id, name, avatar_url")
             .eq("id", user.id)
             .single();
-            
           setProfile(profileData);
         }
       } catch (error) {
-        console.error("Erro ao carregar dados de configuração:", error);
+        console.error("Erro ao carregar dados:", error);
       } finally {
         setLoading(false);
       }
@@ -51,16 +48,53 @@ export default function Configuracoes() {
     getUserData();
   }, [supabase]);
 
-    // Função responsável por encerrar a sessão e redirecionar de forma limpa
   const handleLogout = async () => {
     try {
-      // 1. Encerra de fato a sessão no Supabase Auth
       await supabase.auth.signOut();
-      
-      // 2. Força um reload completo limpando o cache e indo para a página inicial
       window.location.href = "/";
     } catch (error) {
       console.error("Erro ao tentar deslogar:", error);
+    }
+  };
+
+  // Função para lidar com o envio da imagem
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploadingAvatar(true);
+      if (!event.target.files || event.target.files.length === 0) return;
+      
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${profile.id}-${Math.random()}.${fileExt}`;
+
+      // 1. Faz o upload para o bucket 'avatars'
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // 2. Pega a URL pública da imagem recém-upada
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // 3. Salva a URL no perfil do usuário na tabela profiles
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', profile.id);
+
+      if (updateError) throw updateError;
+
+      // Atualiza a tela instantaneamente
+      setProfile({ ...profile, avatar_url: publicUrl });
+
+    } catch (error) {
+      console.error("Erro no upload da imagem:", error);
+      alert("Erro ao enviar imagem. Verifique se o bucket 'avatars' está público no Supabase.");
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -79,37 +113,60 @@ export default function Configuracoes() {
         <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
       </div>
 
-      {/* Perfil */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card rounded-xl border border-border p-6 space-y-4"
+        className="bg-card rounded-xl border border-border p-6 space-y-6"
       >
         <div className="flex items-center gap-3 mb-2">
           <User className="w-5 h-5 text-primary" />
           <h2 className="text-base font-bold text-foreground">Perfil</h2>
         </div>
-        <div className="space-y-3">
-          <div>
-            <Label className="text-xs text-muted-foreground">Nome</Label>
-            <Input
-              value={profile?.name || "Membro"}
-              disabled
-              className="mt-1 bg-muted border-border text-foreground"
-            />
+
+        {/* Seção do Avatar Clicável */}
+        <div className="flex items-center gap-6">
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="relative w-24 h-24 rounded-full border-2 border-border bg-muted flex items-center justify-center overflow-hidden cursor-pointer group hover:border-primary transition-colors"
+          >
+            {uploadingAvatar ? (
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            ) : profile?.avatar_url ? (
+              <>
+                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                  <Camera className="w-6 h-6 text-white" />
+                </div>
+              </>
+            ) : (
+              <div className="text-center">
+                <Camera className="w-8 h-8 text-muted-foreground mx-auto mb-1 group-hover:text-primary transition-colors" />
+                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Mudar</span>
+              </div>
+            )}
           </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Email</Label>
-            <Input
-              value={userEmail}
-              disabled
-              className="mt-1 bg-muted border-border text-foreground"
-            />
+          <div className="flex-1 space-y-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">Nome</Label>
+              <Input value={profile?.name || "Membro"} disabled className="mt-1 bg-muted border-border text-foreground" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Email</Label>
+              <Input value={userEmail} disabled className="mt-1 bg-muted border-border text-foreground" />
+            </div>
           </div>
+          
+          {/* Input de arquivo oculto */}
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleAvatarUpload} 
+            accept="image/png, image/jpeg, image/webp" 
+            className="hidden" 
+          />
         </div>
       </motion.div>
 
-      {/* Notificações */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -137,7 +194,6 @@ export default function Configuracoes() {
         </div>
       </motion.div>
 
-      {/* Conta */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
