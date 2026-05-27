@@ -133,7 +133,7 @@ export default function Configuracoes() {
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
             ) : profile?.avatar_url ? (
               <>
-                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover object-center" />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                   <Camera className="w-6 h-6 text-white" />
                 </div>
