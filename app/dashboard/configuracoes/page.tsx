@@ -65,7 +65,13 @@ export default function Configuracoes() {
       
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const filePath = `${profile.id}-${Math.random()}.${fileExt}`;
+      
+      // Busca o usuário direto da sessão atual para garantir o ID correto
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Usar o timestamp (Date.now()) impede que o navegador faça cache da imagem antiga
+      const filePath = `${user.id}-${Date.now()}.${fileExt}`;
 
       // 1. Faz o upload para o bucket 'avatars'
       const { error: uploadError } = await supabase.storage
@@ -79,20 +85,24 @@ export default function Configuracoes() {
         .from('avatars')
         .getPublicUrl(filePath);
 
+      // Log para checagem no console do navegador (F12)
+      console.log("Link da foto gerado com sucesso:", publicUrl);
+
       // 3. Salva a URL no perfil do usuário na tabela profiles
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
-        .eq('id', profile.id);
+        .eq('id', user.id);
 
       if (updateError) throw updateError;
 
-      // Atualiza a tela instantaneamente
-      setProfile({ ...profile, avatar_url: publicUrl });
+      // Atualiza o estado da tela atual instantaneamente
+      setProfile((prev: any) => ({ ...prev, avatar_url: publicUrl }));
+      alert("Foto de perfil atualizada com sucesso!");
 
-    } catch (error) {
-      console.error("Erro no upload da imagem:", error);
-      alert("Erro ao enviar imagem. Verifique se o bucket 'avatars' está público no Supabase.");
+    } catch (error: any) {
+      console.error("Erro completo durante o fluxo de upload:", error);
+      alert("Erro ao salvar imagem: " + (error.message || error));
     } finally {
       setUploadingAvatar(false);
     }
