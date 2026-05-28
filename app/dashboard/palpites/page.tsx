@@ -42,6 +42,9 @@ export default function Palpites() {
           away_flag: m.awayTeam.crest || "🏳️",
           match_date: m.utcDate,
           round: m.matchday || 1
+
+          status: m.status,
+          score: m.score
         }));
 
         setMatches(formattedMatches);
