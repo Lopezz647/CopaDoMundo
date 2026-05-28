@@ -33,9 +33,9 @@ export async function GET() {
       homeTeam: { name: "Brasil", shortName: "BRA", crest: "https://crests.football-data.org/764.svg" },
       awayTeam: { name: "Argentina", shortName: "ARG", crest: "https://crests.football-data.org/762.png" },
       utcDate: new Date(Date.now() + minutosAdicionais * 60000).toISOString(), 
-      status: "SCHEDULED",
+      status: "IN_PLAY",
       score: {
-        fullTime: { home: null, away: null }
+        fullTime: {home: 2, away: 0}
       }
     };
 
