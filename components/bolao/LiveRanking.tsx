@@ -17,18 +17,21 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
 
   // 1. O CORAÇÃO DO CÁLCULO AO VIVO (Roda em memória de forma segura)
   const liveLeaderboard = useMemo(() => {
-    if (!dbRanking || !predictions || !liveMatches) return [];
+    // Removemos o dbRanking da trava, agora ele só exige as predictions e os liveMatches
+    if (!predictions || !liveMatches) return [];
 
-    // Cria um mapa inicial com os dados estáveis de todo mundo que está no banco
     const rankingMap: Record<string, { name: string; avatar_url: string; points: number }> = {};
     
-    dbRanking.forEach((u) => {
-      rankingMap[u.id] = {
-        name: u.name || "Usuário",
-        avatar_url: u.avatar_url,
-        points: u.total_points || 0,
-      };
-    });
+    // Se o dbRanking foi passado, popula o mapa inicial
+    if (dbRanking) {
+      dbRanking.forEach((u) => {
+        rankingMap[u.id] = {
+          name: u.name || "Usuário",
+          avatar_url: u.avatar_url,
+          points: u.total_points || 0,
+        };
+      });
+    }
 
     // Percorre os palpites para somar os pontos virtuais dos jogos ao vivo
     predictions.forEach((p) => {
@@ -42,9 +45,13 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
           match.score?.fullTime?.away
         );
 
-        if (rankingMap[p.user_id]) {
-          rankingMap[p.user_id].points += points;
+        // Se o usuário ainda não existe no mapa, cria ele na hora
+        if (!rankingMap[p.user_id]) {
+          rankingMap[p.user_id] = { name: "Competidor", avatar_url: "", points: 0 };
         }
+
+        // Soma os pontos virtuais
+        rankingMap[p.user_id].points += points;
       }
     });
 
