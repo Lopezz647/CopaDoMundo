@@ -32,7 +32,7 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
 
     // Percorre os palpites para somar os pontos virtuais dos jogos ao vivo
     predictions.forEach((p) => {
-      const match = liveMatches.find((m) => m.id === p.match_id);
+      const match = liveMatches.find((m) => String(m.id) === String(p.match_id));
       
       if (match && (match.status === "IN_PLAY" || match.status === "FINISHED")) {
         const points = calculateLivePoints(
