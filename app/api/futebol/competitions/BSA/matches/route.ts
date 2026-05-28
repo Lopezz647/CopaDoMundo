@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+
+
 export async function GET() {
   const API_KEY = process.env.NEXT_PUBLIC_API_TOKEN
 
@@ -22,6 +24,26 @@ export async function GET() {
     }
 
     const data = await res.json()
+    // --- INÍCIO DO MOCK (MÁQUINA DO TEMPO) ---
+    const minutosAdicionais = 15; 
+
+    const jogoFalso = {
+      id: 999999,
+      competition: { id: "WC", name: "FIFA World Cup" },
+      homeTeam: { name: "Brasil", shortName: "BRA", crest: "https://crests.football-data.org/764.svg" },
+      awayTeam: { name: "Argentina", shortName: "ARG", crest: "https://crests.football-data.org/762.png" },
+      utcDate: new Date(Date.now() + minutosAdicionais * 60000).toISOString(), 
+      status: "SCHEDULED",
+      score: {
+        fullTime: { home: null, away: null }
+      }
+    };
+
+    // Garante que o array existe e injeta o jogo falso no topo
+    if (data.matches) {
+      data.matches.unshift(jogoFalso);
+    }
+    // --- FIM DO MOCK ---
     
     // Log para confirmar que os dados chegaram no servidor
     console.log(`✅ Sucesso! Foram encontrados ${data.matches?.length || 0} jogos na API.`);
