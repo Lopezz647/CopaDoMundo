@@ -25,7 +25,7 @@ export async function GET() {
 
     const data = await res.json()
     // --- INÍCIO DO MOCK (MÁQUINA DO TEMPO) ---
-    const minutosAdicionais = 20; 
+    const minutosAdicionais = -10; 
 
     const jogoFalso = {
       id: 999999,
