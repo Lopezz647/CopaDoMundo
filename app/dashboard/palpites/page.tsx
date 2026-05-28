@@ -41,7 +41,7 @@ export default function Palpites() {
           home_flag: m.homeTeam.crest || "🏳️",
           away_flag: m.awayTeam.crest || "🏳️",
           match_date: m.utcDate,
-          round: m.matchday || 1
+          round: m.matchday || 1,
 
           status: m.status,
           score: m.score
