@@ -5,27 +5,17 @@ import { createClient } from "@/lib/supabase/client";
 
 const POINT_VALUES = [10, 7, 5, 3, 0];
 
-function PointBadge({ pts, count }: { pts: number; count: number }) {
-  const colors: Record<number, { bg: string; color: string }> = {
-    10: { bg: "rgba(78,222,163,0.15)", color: "#4edea3" },
-    7:  { bg: "rgba(100,160,255,0.15)", color: "#64a0ff" },
-    5:  { bg: "rgba(255,185,95,0.15)", color: "#ffb95f" },
-    3:  { bg: "rgba(180,130,255,0.15)", color: "#b482ff" },
-    0:  { bg: "rgba(255,100,100,0.12)", color: "#ff6464" },
-  };
-  const c = colors[pts] || colors[0];
-  return (
-    <div className="flex flex-col items-center gap-0.5">
-      <span className="text-[11px] font-black" style={{ color: c.color }}>{count}</span>
-      <span
-        className="text-[9px] font-bold px-1.5 py-0.5 rounded"
-        style={{ background: c.bg, color: c.color }}
-      >
-        {pts}pts
-      </span>
-    </div>
-  );
-}
+// Mapeamento amigável de estágios/fases vindos de APIs internacionais (ex: football-data)
+const STAGE_MAP: Record<string, string> = {
+  "GROUP_STAGE": "Fase de Grupos",
+  "LAST_64": "64 Avos",
+  "LAST_32": "32 Avos",
+  "LAST_16": "Oitavas",
+  "QUARTER_FINALS": "Quartas",
+  "SEMI_FINALS": "Semifinal",
+  "THIRD_PLACE": "3° Lugar",
+  "FINAL": "Final"
+};
 
 function MedalIcon({ rank }: { rank: number }) {
   if (rank === 1) return <span className="text-[16px]">🥇</span>;
@@ -38,16 +28,15 @@ export default function Ranking() {
   const supabase = createClient();
   const [currentUser, setCurrentUser] = useState<any>(null);
 
-  const [selectedPhase, setSelectedPhase] = useState<string | number>("all");
-  const [filterPoints, setFilterPoints] = useState<number | null>(null); // null = show all
+  const [selectedPhase, setSelectedPhase] = useState<string>("all");
+  const [filterPoints, setFilterPoints] = useState<number | null>(null);
 
-  // Estados de Dados do Supabase
+  // Estados de Dados
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [allPredictions, setAllPredictions] = useState<any[]>([]);
   const [allMatches, setAllMatches] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Carrega os dados reais do Supabase e da API de futebol
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
@@ -63,7 +52,7 @@ export default function Ranking() {
         const matchData = await res.json();
         setAllMatches(matchData.matches || []);
       } catch (error) {
-        console.error("Erro ao carregar jogos na API:", error);
+        console.error("Erro ao carregar partidas:", error);
       }
 
       if (profiles) setAllUsers(profiles);
@@ -74,18 +63,33 @@ export default function Ranking() {
     loadData();
   }, []);
 
-  // Filtra os jogos por Fase/Rodada (matchday)
+  // 1. Descobre todas as fases/etapas disponíveis nas partidas
+  const phasesInData = useMemo(() => {
+    const phasesSet = new Set<string>();
+    allMatches.forEach(m => {
+      if (m.stage) phasesSet.add(m.stage);
+      else if (m.matchday) phasesSet.add(`Rodada ${m.matchday}`);
+    });
+    return Array.from(phasesSet).sort((a, b) => {
+      // Ordenação simples colocando Fase de Grupos / Rodadas menores primeiro
+      if (a.includes("GROUP") || a.includes("Rodada")) return -1;
+      if (b.includes("GROUP") || b.includes("Rodada")) return 1;
+      return 0;
+    });
+  }, [allMatches]);
+
+  // 2. Filtra partidas baseando-se na fase selecionada
   const filteredMatches = useMemo(() => {
     if (selectedPhase === "all") return allMatches;
-    return allMatches.filter(m => m.matchday === selectedPhase);
+    return allMatches.filter(m => m.stage === selectedPhase || `Rodada ${m.matchday}` === selectedPhase);
   }, [allMatches, selectedPhase]);
 
-  // Considera apenas os jogos finalizados para calcular os acertos passados
+  // Filtra apenas partidas concluídas para fins estatísticos de acerto
   const finishedMatches = useMemo(() => {
     return filteredMatches.filter(m => m.status === "FINISHED");
   }, [filteredMatches]);
 
-  // Constrói o Ranking cruzando Supabase e API
+  // 3. CORE: Constrói e Recalcula a classificação dinamicamente
   const ranked = useMemo(() => {
     return allUsers.map(u => {
       const userPreds = allPredictions.filter(p => p.user_id === u.id);
@@ -93,82 +97,83 @@ export default function Ranking() {
       userPreds.forEach(p => { predMap[p.match_id] = p; });
 
       const counters: Record<number, number> = { 10: 0, 7: 0, 5: 0, 3: 0, 0: 0 };
-      let maxRound = 0;
+      let totalPointsCalculated = 0;
 
-      // Popula os contadores de acertos baseados nos jogos finalizados
+      // Calcula os pontos baseando-se estritamente nas partidas da fase selecionada
       finishedMatches.forEach(match => {
         const pred = predMap[match.id];
         if (pred && pred.points !== null && pred.points !== undefined) {
           const pts = pred.points;
+          totalPointsCalculated += pts;
           if (counters[pts] !== undefined) {
             counters[pts] += 1;
           }
         }
       });
 
-      // Calcula a melhor pontuação em uma única rodada
-      const rounds = Array.from(new Set(finishedMatches.map(m => m.matchday).filter(Boolean)));
-      rounds.forEach(round => {
-        const roundMatches = finishedMatches.filter(m => m.matchday === round);
+      // Calcula a maior pontuação obtida em uma única rodada/sub-etapa dentro do escopo filtrado
+      const rounds = Array.from(new Set(filteredMatches.map(m => m.matchday).filter(Boolean)));
+      let maxRound = 0;
+      rounds.forEach(r => {
+        const roundMatches = finishedMatches.filter(m => m.matchday === r);
         let roundPts = 0;
         roundMatches.forEach(match => {
           const pred = predMap[match.id];
-          if (pred && pred.points) {
-            roundPts += pred.points;
-          }
+          if (pred && pred.points) roundPts += pred.points;
         });
         if (roundPts > maxRound) maxRound = roundPts;
       });
 
       return {
         ...u,
-        totalPoints: u.total_points || 0, // Usa os pontos oficiais do banco
+        // Se a fase for "Todas", exibe o total global acumulado, caso contrário exibe o recalculado da fase
+        totalPoints: selectedPhase === "all" ? (u.total_points || totalPointsCalculated) : totalPointsCalculated,
         counters,
         maxRound,
         predCount: userPreds.length,
       };
-    }).sort((a, b) => b.totalPoints - a.totalPoints);
-  }, [allUsers, allPredictions, finishedMatches]);
+    }).sort((a, b) => b.totalPoints - a.totalPoints); // Reclassifica do 1° ao último colocado
+  }, [allUsers, allPredictions, finishedMatches, selectedPhase, filteredMatches]);
 
-  // Filtra as linhas por quem tem uma contagem de pontos específica
+  // Filtro avançado por acertos específicos de pontuação (10, 7, 5, etc)
   const displayedRanked = useMemo(() => {
     if (filterPoints === null) return ranked;
     return ranked.filter(u => (u.counters[filterPoints] || 0) > 0);
   }, [ranked, filterPoints]);
 
-  // Estatísticas Máximas
+  // Estatísticas Máximas Dinâmicas
   const maxPhasePoints = ranked.length > 0 ? Math.max(...ranked.map(u => u.totalPoints)) : 0;
   const maxRoundPoints = ranked.length > 0 ? Math.max(...ranked.map(u => u.maxRound)) : 0;
 
-  // Extrai as Fases (Rodadas) disponíveis diretamente dos jogos da API
-  const phasesInData = useMemo(() => {
-    const set = new Set(allMatches.map(m => m.matchday).filter(Boolean));
-    return Array.from(set).sort((a, b) => Number(a) - Number(b));
-  }, [allMatches]);
-
   return (
     <div className="max-w-4xl mx-auto space-y-5 pb-10 mt-6">
-      {/* Header */}
+      {/* Cabeçalho */}
       <div className="flex items-center gap-3">
         <span className="text-[22px]">🏆</span>
         <h1 className="text-[22px] font-bold text-[#e5e2e1]">Ranking Geral</h1>
       </div>
 
-      {/* Stats bar */}
+      {/* Painel de Estatísticas Máximas Dinâmicas */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl border border-white/5 p-4" style={{ background: "#181818" }}>
-          <p className="text-[11px] text-[#8a9a8e] mb-1">Maior pontuação {selectedPhase !== "all" ? "na fase" : "acumulada"}</p>
-          <p className="text-[24px] font-black text-[#4edea3]">{maxPhasePoints} <span className="text-[13px] font-normal text-[#8a9a8e]">pts</span></p>
+          <p className="text-[11px] text-[#8a9a8e] mb-1">
+            {selectedPhase === "all" ? "Maior pontuação geral acumulada" : "Maior pontuação nesta fase"}
+          </p>
+          <p className="text-[24px] font-black text-[#4edea3]">
+            {maxPhasePoints} <span className="text-[13px] font-normal text-[#8a9a8e]">pts</span>
+          </p>
         </div>
         <div className="rounded-xl border border-white/5 p-4" style={{ background: "#181818" }}>
           <p className="text-[11px] text-[#8a9a8e] mb-1">Maior pontuação em uma rodada</p>
-          <p className="text-[24px] font-black text-[#ffb95f]">{maxRoundPoints} <span className="text-[13px] font-normal text-[#8a9a8e]">pts</span></p>
+          <p className="text-[24px] font-black text-[#ffb95f]">
+            {maxRoundPoints} <span className="text-[13px] font-normal text-[#8a9a8e]">pts</span>
+          </p>
         </div>
       </div>
 
-      {/* Filters row */}
+      {/* Seletores e Filtros Avançados */}
       <div className="flex flex-col gap-3">
-        {/* Phase filter */}
+        {/* Filtro por Fase / Rodada da Competição */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[11px] text-[#8a9a8e] font-semibold mr-1">Fase:</span>
           <button
@@ -183,20 +188,20 @@ export default function Ranking() {
           </button>
           {phasesInData.map(phase => (
             <button
-              key={phase as React.Key}
-              onClick={() => setSelectedPhase(phase as string | number)}
+              key={phase}
+              onClick={() => setSelectedPhase(phase)}
               className="px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-colors"
               style={selectedPhase === phase
                 ? { background: "rgba(78,222,163,0.2)", color: "#4edea3", border: "1px solid rgba(78,222,163,0.4)" }
                 : { background: "#1a1a1a", color: "#8a9a8e", border: "1px solid rgba(255,255,255,0.06)" }
               }
             >
-              Rodada {phase}
+              {STAGE_MAP[phase] || phase}
             </button>
           ))}
         </div>
 
-        {/* Points filter */}
+        {/* Filtro de Linhas por Acerto Específico */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[11px] text-[#8a9a8e] font-semibold mr-1">Filtrar por acerto:</span>
           <button
@@ -235,9 +240,8 @@ export default function Ranking() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Tabela do Ranking Reordenável */}
       <div className="rounded-xl border border-white/5 overflow-hidden" style={{ background: "#181818" }}>
-        {/* Table header */}
         <div
           className="grid px-4 py-3 border-b border-white/5 text-[11px] text-[#8a9a8e] font-semibold uppercase tracking-wider"
           style={{ gridTemplateColumns: "40px 1fr 60px 60px 60px 60px 60px 60px" }}
@@ -257,11 +261,11 @@ export default function Ranking() {
             <Loader2 className="w-6 h-6 animate-spin text-[#4edea3]" />
           </div>
         ) : displayedRanked.length === 0 ? (
-          <div className="py-10 text-center text-[#8a9a8e] text-[13px]">Nenhum resultado encontrado.</div>
+          <div className="py-10 text-center text-[#8a9a8e] text-[13px]">Nenhum resultado encontrado para o filtro atual.</div>
         ) : (
           displayedRanked.map((member, idx) => {
-            const isYou = currentUser && member.email === currentUser.email;
-            const rank = ranked.findIndex(m => m.email === member.email) + 1;
+            const isYou = currentUser && member.id === currentUser.id;
+            const rank = ranked.findIndex(m => m.id === member.id) + 1;
             return (
               <div
                 key={member.id}
@@ -280,10 +284,10 @@ export default function Ranking() {
                     className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0"
                     style={{ background: "rgba(78,222,163,0.12)", color: "#4edea3", border: "1px solid rgba(78,222,163,0.2)" }}
                   >
-                    {member.full_name?.charAt(0).toUpperCase() || member.email?.charAt(0).toUpperCase() || "?"}
+                    {member.full_name?.charAt(0).toUpperCase() || "?"}
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[13px] font-semibold text-[#e5e2e1] truncate">{member.full_name || member.email}</span>
+                    <span className="text-[13px] font-semibold text-[#e5e2e1] truncate">{member.full_name || "Membro"}</span>
                     {isYou && (
                       <span
                         className="text-[9px] font-bold px-1.5 py-0.5 mt-0.5 rounded self-start"
