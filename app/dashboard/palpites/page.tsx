@@ -55,15 +55,23 @@ export default function Palpites() {
           setUserId(user.id);
           setUserEmail(user.email || "");
 
-         const { data: rankingData } = await supabase
-          .from("profiles")
-          .select("*");
+          // 1. Busca o Ranking (A novidade que adicionamos)
+          const { data: rankingData } = await supabase
+            .from("profiles")
+            .select("*");
           
-        if (rankingData) {
-          setDbRanking(rankingData);
-        }
+          if (rankingData) {
+            setDbRanking(rankingData);
+          }
+
+          // 2. BUSCA OS PALPITES (A linha que tinha sumido!)
+          const { data: userPredictions } = await supabase
+            .from("predictions")
+            .select("*")
+            .eq("user_id", user.id);
+
+          // 3. Mapeia os palpites para a tela
           if (userPredictions) {
-            // CORREÇÃO: Traduz os dados do banco (score_home) para o formato que a interface (MatchCard) precisa usar internamente
             const mappedPredictions = userPredictions.map((p: any) => ({
               id: p.id,
               user_id: p.user_id,
