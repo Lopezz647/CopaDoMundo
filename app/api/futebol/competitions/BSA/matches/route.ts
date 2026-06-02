@@ -28,7 +28,7 @@ export async function GET() {
     const minutosAdicionais = 25; 
 
     const jogoFalso = {
-      id: 999999,
+      id: 999991,
       competition: { id: "WC", name: "FIFA World Cup" },
       homeTeam: { name: "Brasil", shortName: "BRA", crest: "https://crests.football-data.org/764.svg" },
       awayTeam: { name: "Argentina", shortName: "ARG", crest: "https://crests.football-data.org/762.png" },
