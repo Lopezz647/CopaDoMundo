@@ -6,34 +6,43 @@ import React, { useMemo, useState } from "react";
 // AVALIADOR DE PONTOS (Regras Oficiais)
 // ==========================================
 function getMatchPoints(officialHome: number, officialAway: number, predHome: number, predAway: number) {
-  // 1. Acertou Placar Exato (10 pts)
+  // 1. Placar Exato (10 pts)
   if (officialHome === predHome && officialAway === predAway) {
-    return { pts: 10, text: "Acertou placar exato" };
+    return { pts: 10, text: "Placar exato" };
   }
 
-  const offDiff = officialHome - officialAway;
-  const pDiff = predHome - predAway;
-  const offWin = offDiff > 0 ? "home" : offDiff < 0 ? "away" : "draw";
-  const pWin = pDiff > 0 ? "home" : pDiff < 0 ? "away" : "draw";
+  const isOfficialWinnerHome = officialHome > officialAway;
+  const isOfficialWinnerAway = officialHome < officialAway;
+  const isOfficialDraw = officialHome === officialAway;
 
-  // Acertou a tendência (Vitória de um deles ou Empate)
-  if (offWin === pWin) {
-    if (offWin === "draw") {
-      // 2. Acertou que era Empate, mas errou o placar (3 pts)
-      return { pts: 3, text: "Acertou apenas empate" };
-    } else if (offDiff === pDiff) {
-      // 3. Acertou o Vencedor e a Diferença exata de gols (7 pts)
-      return { pts: 7, text: "Acertou vencedor e diferença de gols" };
-    } else {
-      // 4. Acertou apenas o Vencedor (5 pts)
-      return { pts: 5, text: "Acertou apenas vencedor" };
-    }
+  const isPredWinnerHome = predHome > predAway;
+  const isPredWinnerAway = predHome < predAway;
+  const isPredDraw = predHome === predAway;
+
+  const isWinnerCorrect = 
+    (isOfficialWinnerHome && isPredWinnerHome) || 
+    (isOfficialWinnerAway && isPredWinnerAway);
+
+  // 2. Vencedor + 1 placar correto (7 pts)
+  // Ex: Res 3x1, Aposta 2x1 -> Vencedor OK + Placar Away(1) OK
+  if (isWinnerCorrect && (officialHome === predHome || officialAway === predAway)) {
+    return { pts: 7, text: "Vencedor + 1 placar" };
   }
 
-  // 5. Errou Totalmente (0 pts)
+  // 3. Apenas Vencedor OU Empate (5 pts)
+  // Hierarquia: O empate entra aqui pois 10 pts já pegou o exato
+  if (isWinnerCorrect || (isOfficialDraw && isPredDraw)) {
+    return { pts: 5, text: "Apenas vencedor/empate" };
+  }
+
+  // 4. Acertou 1 placar (2 pts)
+  if (officialHome === predHome || officialAway === predAway) {
+    return { pts: 2, text: "Acertou 1 placar" };
+  }
+
+  // 5. Nada (0 pts)
   return { pts: 0, text: "Errou totalmente" };
 }
-
 // ==========================================
 // COMPONENTE VISUAL: BADGE DE PONTOS
 // ==========================================
