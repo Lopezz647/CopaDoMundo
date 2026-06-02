@@ -24,6 +24,7 @@ export default function Palpites() {
   const [matches, setMatches] = useState<any[]>([]);
   const [predictions, setPredictions] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [allPredictions, setAllPredictions] = useState<any[]>([]); 
 
   // 1. Carregar os jogos reais da API e os palpites do Supabase
   useEffect(() => {
@@ -65,14 +66,14 @@ export default function Palpites() {
           }
 
           // 2. BUSCA OS PALPITES (A linha que tinha sumido!)
-          const { data: userPredictions } = await supabase
+          // BUSCA TODOS OS PALPITES DE TODOS OS MEMBROS (Para o Ranking Ao Vivo)
+          const { data: allPredictionsData } = await supabase
             .from("predictions")
-            .select("*")
-            .eq("user_id", user.id);
+            .select("*");
 
-          // 3. Mapeia os palpites para a tela
-          if (userPredictions) {
-            const mappedPredictions = userPredictions.map((p: any) => ({
+          if (allPredictionsData) {
+            // Mapeia os nomes das colunas de todos os palpites
+            const mappedAll = allPredictionsData.map((p: any) => ({
               id: p.id,
               user_id: p.user_id,
               match_id: p.match_id,
@@ -80,7 +81,13 @@ export default function Palpites() {
               away_score: p.score_away,
               points: p.points
             }));
-            setPredictions(mappedPredictions);
+
+            // Salva TODOS para enviar ao Ranking
+            setAllPredictions(mappedAll);
+
+            // Filtra APENAS OS SEUS para preencher os botões da sua tela
+            const myPredictions = mappedAll.filter(p => p.user_id === user.id);
+            setPredictions(myPredictions);
           }
         }
 
@@ -274,9 +281,9 @@ export default function Palpites() {
         <div className="flex flex-col gap-6">
           <LiveRanking 
   user={{ id: userId, email: userEmail, name: "Você" }} 
-  predictions={predictions} 
+  predictions={allPredictions} // <-- AGORA ENVIAMOS A LISTA DE TODO MUNDO!
   liveMatches={matches} 
-  dbRanking={dbRanking} // <-- Agora enviando os pontos consolidados oficiais!
+  dbRanking={dbRanking} 
 />
         </div>
       </div>
