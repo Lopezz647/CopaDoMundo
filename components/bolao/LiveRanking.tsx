@@ -39,8 +39,8 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
       
       if (match && (match.status === "IN_PLAY" || match.status === "FINISHED")) {
         const points = calculateLivePoints(
-          p.score_home,
-          p.score_away,
+          p.home_score, // CORREÇÃO AQUI
+          p.away_score, // CORREÇÃO AQUI
           match.score?.fullTime?.home,
           match.score?.fullTime?.away
         );
