@@ -12,6 +12,7 @@ import LiveRanking from "@/components/bolao/LiveRanking";
 
 export default function Palpites() {
   const supabase = createClient();
+  const [dbRanking, setDbRanking] = useState<any[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string>("usuario@email.com");
 
@@ -41,8 +42,7 @@ export default function Palpites() {
           home_flag: m.homeTeam.crest || "🏳️",
           away_flag: m.awayTeam.crest || "🏳️",
           match_date: m.utcDate,
-         round: m.matchday || 1,
-          // 👇 AS DUAS LINHAS MÁGICAS QUE FALTAVAM:
+          round: m.matchday || 1,
           status: m.status,
           score: m.score
         }));
@@ -55,11 +55,13 @@ export default function Palpites() {
           setUserId(user.id);
           setUserEmail(user.email || "");
 
-          const { data: userPredictions } = await supabase
-            .from("predictions")
-            .select("*")
-            .eq("user_id", user.id);
-
+         const { data: rankingData } = await supabase
+          .from("profiles")
+          .select("*");
+          
+        if (rankingData) {
+          setDbRanking(rankingData);
+        }
           if (userPredictions) {
             // CORREÇÃO: Traduz os dados do banco (score_home) para o formato que a interface (MatchCard) precisa usar internamente
             const mappedPredictions = userPredictions.map((p: any) => ({
