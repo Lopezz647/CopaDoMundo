@@ -37,7 +37,7 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
     predictions.forEach((p) => {
       const match = liveMatches.find((m) => String(m.id) === String(p.match_id));
       
-      if (match && (match.status === "IN_PLAY" || match.status === "FINISHED")) {
+if (match && (match.status === "IN_PLAY" || match.status === "FINISHED")) {
         const calculatedPoints = calculateLivePoints(
           p.home_score,
           p.away_score,
@@ -56,10 +56,6 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
 
         // Soma apenas a diferença!
         rankingMap[p.user_id].points += pointsToAdd;
-      }
-
-        // Soma os pontos virtuais
-        rankingMap[p.user_id].points += points;
       }
     });
 
