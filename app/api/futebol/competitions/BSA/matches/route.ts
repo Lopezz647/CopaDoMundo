@@ -25,7 +25,7 @@ export async function GET() {
 
     const data = await res.json()
     // --- INÍCIO DO MOCK (MÁQUINA DO TEMPO) ---
-    const minutosAdicionais = -10; 
+    const minutosAdicionais = 25; 
 
     const jogoFalso = {
       id: 999999,
@@ -35,7 +35,7 @@ export async function GET() {
       utcDate: new Date(Date.now() + minutosAdicionais * 60000).toISOString(), 
       status: "FINISHED",
       score: {
-        fullTime: {home: 3, away: 1}
+        fullTime: {home: null, away: null}
       }
     };
 
