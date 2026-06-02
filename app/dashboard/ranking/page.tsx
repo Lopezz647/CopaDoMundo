@@ -44,15 +44,23 @@ export default function Ranking() {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
 
-      const { data: profiles } = await supabase.from("profiles").select("*");
-      const { data: preds } = await supabase.from("predictions").select("*");
+      // BUSCA OS MEMBROS (Com log de erro)
+      const { data: profiles, error: errorProfiles } = await supabase.from("profiles").select("*");
+      if (errorProfiles) console.error("❌ Erro no Supabase (Profiles):", errorProfiles.message);
+      console.log("✅ Membros puxados do banco:", profiles);
 
+      // BUSCA OS PALPITES (Com log de erro)
+      const { data: preds, error: errorPreds } = await supabase.from("predictions").select("*");
+      if (errorPreds) console.error("❌ Erro no Supabase (Predictions):", errorPreds.message);
+      console.log("✅ Palpites puxados do banco:", preds);
+
+      // BUSCA OS JOGOS NA API
       try {
         const res = await fetch("/api/futebol/competitions/BSA/matches");
         const matchData = await res.json();
         setAllMatches(matchData.matches || []);
       } catch (error) {
-        console.error("Erro ao carregar partidas:", error);
+        console.error("❌ Erro ao carregar jogos na API:", error);
       }
 
       if (profiles) setAllUsers(profiles);
