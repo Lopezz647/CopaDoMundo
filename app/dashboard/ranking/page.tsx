@@ -289,13 +289,17 @@ export default function Ranking() {
 
                 <div className="flex items-center gap-2 min-w-0">
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0 overflow-hidden"
                     style={{ background: "rgba(78,222,163,0.12)", color: "#4edea3", border: "1px solid rgba(78,222,163,0.2)" }}
                   >
-                    {member.full_name?.charAt(0).toUpperCase() || "?"}
+                    {member.avatar_url ? (
+                      <img src={member.avatar_url} alt={member.name} className="w-full h-full object-cover" />
+                    ) : (
+                      member.name?.charAt(0).toUpperCase() || "?"
+                    )}
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[13px] font-semibold text-[#e5e2e1] truncate">{member.full_name || "Membro"}</span>
+                    <span className="text-[13px] font-semibold text-[#e5e2e1] truncate">{member.name || "Membro"}</span>
                     {isYou && (
                       <span
                         className="text-[9px] font-bold px-1.5 py-0.5 mt-0.5 rounded self-start"
