@@ -26,7 +26,7 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
     if (dbRanking) {
       dbRanking.forEach((u) => {
         rankingMap[u.id] = {
-          name: u.name || "Usuário",
+          name: u.full_name || u.name || "Competidor", // <-- Tenta o full_name primeiro
           avatar_url: u.avatar_url,
           points: u.total_points || 0,
         };
