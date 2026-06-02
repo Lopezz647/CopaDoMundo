@@ -35,7 +35,7 @@ export async function GET() {
       utcDate: new Date(Date.now() + minutosAdicionais * 60000).toISOString(), 
       status: "IN_PLAY",
       score: {
-        fullTime: {home: 2, away: 0}
+        fullTime: {home: 3, away: 1}
       }
     };
 
