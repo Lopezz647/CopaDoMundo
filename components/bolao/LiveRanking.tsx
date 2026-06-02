@@ -38,17 +38,25 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
       const match = liveMatches.find((m) => String(m.id) === String(p.match_id));
       
       if (match && (match.status === "IN_PLAY" || match.status === "FINISHED")) {
-        const points = calculateLivePoints(
-          p.home_score, // CORREÇÃO AQUI
-          p.away_score, // CORREÇÃO AQUI
+        const calculatedPoints = calculateLivePoints(
+          p.home_score,
+          p.away_score,
           match.score?.fullTime?.home,
           match.score?.fullTime?.away
         );
 
-        // Se o usuário ainda não existe no mapa, cria ele na hora
+        // A MÁGICA DA RECONCILIAÇÃO:
+        // Subtrai do cálculo ao vivo os pontos que já estão consolidados no banco
+        const pointsAlreadySaved = p.points || 0;
+        const pointsToAdd = calculatedPoints - pointsAlreadySaved;
+
         if (!rankingMap[p.user_id]) {
           rankingMap[p.user_id] = { name: "Competidor", avatar_url: "", points: 0 };
         }
+
+        // Soma apenas a diferença!
+        rankingMap[p.user_id].points += pointsToAdd;
+      }
 
         // Soma os pontos virtuais
         rankingMap[p.user_id].points += points;
