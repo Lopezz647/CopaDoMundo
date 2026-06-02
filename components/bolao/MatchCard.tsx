@@ -9,10 +9,18 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
   const [saveStatus, setSaveStatus] = useState<"idle" | "loading" | "success">("idle");
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Estados para controle dinâmico do tempo
+  // Estados para controle dinâmico do tempo e status
   const [timeLeftStr, setTimeLeftStr] = useState("");
-  const [isLocked, setIsLocked] = useState(false);
+  const [isTimeLocked, setIsTimeLocked] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Status Inteligente do Jogo
+  const isLive = match.status === "IN_PLAY" || match.status === "PAUSED";
+  const isFinished = match.status === "FINISHED";
+  const showRealScore = isLive || isFinished;
+  
+  // O card bloqueia cliques se o tempo acabou, ou se o jogo começou/terminou
+  const isLocked = isTimeLocked || isLive || isFinished;
 
   useEffect(() => {
     setHomeScore(prediction?.home_score ?? null);
@@ -21,6 +29,11 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
 
   // Lógica de contagem regressiva dinâmica em tempo real
   useEffect(() => {
+    if (isLive || isFinished) {
+      setIsTimeLocked(true);
+      return;
+    }
+
     const matchTime = new Date(match.match_date).getTime();
     const fifteenMinutesInMs = 15 * 60 * 1000;
     const lockTime = matchTime - fifteenMinutesInMs;
@@ -30,12 +43,12 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
       const diff = lockTime - now;
 
       if (diff <= 0) {
-        setIsLocked(true);
+        setIsTimeLocked(true);
         setTimeLeftStr("Palpites encerrados");
         return;
       }
 
-      setIsLocked(false);
+      setIsTimeLocked(false);
       const oneDayInMs = 24 * 60 * 60 * 1000;
 
       if (diff > oneDayInMs) {
@@ -55,7 +68,7 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
     const timer = setInterval(calculateCountdown, 1000);
 
     return () => clearInterval(timer);
-  }, [match.match_date]);
+  }, [match.match_date, isLive, isFinished]);
 
   const hasPrediction = homeScore !== null && awayScore !== null;
 
@@ -101,6 +114,42 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
     }
   };
 
+  // Extração do Placar Real da API
+  const realHomeScore = match.score?.fullTime?.home ?? match.score?.regularTime?.home;
+  const realAwayScore = match.score?.fullTime?.away ?? match.score?.regularTime?.away;
+
+  // Componente Condicional de Badges
+  let StatusBadge;
+  if (isFinished) {
+    StatusBadge = (
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+        <span className="material-symbols-rounded text-[14px]">check_circle</span>
+        Encerrado
+      </div>
+    );
+  } else if (isLive) {
+    StatusBadge = (
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider">
+        <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+        Partida em Andamento
+      </div>
+    );
+  } else if (isTimeLocked) {
+    StatusBadge = (
+      <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all bg-red-500/10 text-red-400 border-red-500/20 uppercase tracking-wider">
+        <span className="material-symbols-rounded text-[12px]">lock</span>
+        Palpites encerrados
+      </div>
+    );
+  } else {
+    StatusBadge = (
+      <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all bg-[#4edea3]/5 text-[#4edea3] border-[#4edea3]/10">
+        <span className="material-symbols-rounded text-[12px]">hourglass_top</span>
+        <span>{timeLeftStr}</span>
+      </div>
+    );
+  }
+
   return (
     <>
       <div
@@ -110,7 +159,7 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-black/10">
           <div className="flex items-center gap-2">
             
-            {/* Oculta o selo quando já houver um palpite feito */}
+            {/* Oculta o selo "Sem palpite" quando já houver um palpite feito, se o jogo já estiver rolando/encerrado, ele também não é mais tão útil, mas mantive a sua lógica base */}
             {!hasPrediction && (
               <div
                 className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-[#222] text-[#8a9a8e] border border-white/5"
@@ -120,18 +169,8 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
               </div>
             )}
 
-            <div
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all ${
-                isLocked 
-                  ? "bg-red-500/10 text-red-400 border-red-500/20" 
-                  : "bg-[#4edea3]/5 text-[#4edea3] border-[#4edea3]/10"
-              }`}
-            >
-              <span className="material-symbols-rounded text-[12px]">
-                {isLocked ? "lock" : "hourglass_top"}
-              </span>
-              <span>{timeLeftStr}</span>
-            </div>
+            {/* Renderiza o Badge Inteligente */}
+            {StatusBadge}
           </div>
 
           <button
@@ -146,6 +185,7 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
         <div className="px-6 py-6">
           <div className="flex items-center justify-center gap-6">
             
+            {/* ====== TIME CASA ====== */}
             <div className="flex flex-col items-center gap-3 w-[120px]">
               <div className="w-14 h-10 flex items-center justify-center text-4xl leading-none">
                 {match.home_flag?.startsWith("http") ? (
@@ -157,40 +197,66 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
               <span className="text-[13px] font-semibold text-[#e5e2e1] text-center line-clamp-2 min-h-[32px] flex items-center justify-center leading-tight">
                 {match.home_team}
               </span>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => handleChange("home", -1)} 
-                  disabled={isLocked} 
-                  className="w-7 h-7 rounded bg-[#222] flex items-center justify-center hover:bg-[#2e2e2e] text-[#8a9a8e] hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                >
-                  <span className="material-symbols-rounded text-[16px]">remove</span>
-                </button>
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[20px] font-bold bg-[#111] border border-white/5 text-[#e5e2e1]">
-                  {homeScore ?? "-"}
+              
+              {/* Botões do Time Casa (Ocultos se o jogo já começou) */}
+              {!showRealScore && (
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => handleChange("home", -1)} 
+                    disabled={isLocked} 
+                    className="w-7 h-7 rounded bg-[#222] flex items-center justify-center hover:bg-[#2e2e2e] text-[#8a9a8e] hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <span className="material-symbols-rounded text-[16px]">remove</span>
+                  </button>
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[20px] font-bold bg-[#111] border border-white/5 text-[#e5e2e1]">
+                    {homeScore ?? "-"}
+                  </div>
+                  <button 
+                    onClick={() => handleChange("home", 1)} 
+                    disabled={isLocked} 
+                    className="w-7 h-7 rounded bg-[#222] flex items-center justify-center hover:bg-[#2e2e2e] text-[#8a9a8e] hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <span className="material-symbols-rounded text-[16px]">add</span>
+                  </button>
                 </div>
-                <button 
-                  onClick={() => handleChange("home", 1)} 
-                  disabled={isLocked} 
-                  className="w-7 h-7 rounded bg-[#222] flex items-center justify-center hover:bg-[#2e2e2e] text-[#8a9a8e] hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                >
-                  <span className="material-symbols-rounded text-[16px]">add</span>
-                </button>
+              )}
+            </div>
+
+            {/* ====== CONTAINER CENTRAL ====== */}
+            {showRealScore ? (
+              // Modo "Em Andamento" / "Encerrado": Exibe Placar Real e Meu Palpite Cinza
+              <div className="flex flex-col items-center justify-center mx-2">
+                <div className="flex items-center gap-4 mb-3">
+                  <span className="text-4xl font-black text-white">{realHomeScore ?? 0}</span>
+                  <span className={`text-xl font-bold ${isLive ? 'text-blue-400 animate-pulse' : 'text-[#8a9a8e]'}`}>X</span>
+                  <span className="text-4xl font-black text-white">{realAwayScore ?? 0}</span>
+                </div>
+                
+                <div className="flex flex-col items-center bg-[#111] border border-white/5 rounded-xl px-4 py-2 min-w-[110px]">
+                  <span className="text-[#8a9a8e] text-[9px] uppercase font-bold tracking-wider mb-1">Meu Palpite</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#e5e2e1] font-bold text-sm">{homeScore !== null ? homeScore : "-"}</span>
+                    <span className="text-[#8a9a8e] text-xs">x</span>
+                    <span className="text-[#e5e2e1] font-bold text-sm">{awayScore !== null ? awayScore : "-"}</span>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              // Modo "Aposta Normal": Exibe sua animação de Loading e o "X"
+              <div className="w-8 h-8 flex items-center justify-center relative">
+                {saveStatus === "idle" && (
+                  <div className="text-[#333] font-bold text-xl select-none transition-all duration-300">×</div>
+                )}
+                {saveStatus === "loading" && (
+                  <div className="w-4 h-4 rounded-full border-2 border-[#4edea3]/30 border-t-[#4edea3] animate-spin transition-all duration-300"></div>
+                )}
+                {saveStatus === "success" && (
+                  <span className="material-symbols-rounded text-[#4edea3] text-[18px] transition-all duration-300 drop-shadow-[0_0_8px_rgba(78,222,163,0.5)]">check_circle</span>
+                )}
+              </div>
+            )}
 
-            {/* Container Central (X animado) */}
-            <div className="w-8 h-8 flex items-center justify-center relative">
-              {saveStatus === "idle" && (
-                <div className="text-[#333] font-bold text-xl select-none transition-all duration-300">×</div>
-              )}
-              {saveStatus === "loading" && (
-                <div className="w-4 h-4 rounded-full border-2 border-[#4edea3]/30 border-t-[#4edea3] animate-spin transition-all duration-300"></div>
-              )}
-              {saveStatus === "success" && (
-                <span className="material-symbols-rounded text-[#4edea3] text-[18px] transition-all duration-300 drop-shadow-[0_0_8px_rgba(78,222,163,0.5)]">check_circle</span>
-              )}
-            </div>
-
+            {/* ====== TIME FORA ====== */}
             <div className="flex flex-col items-center gap-3 w-[120px]">
               <div className="w-14 h-10 flex items-center justify-center text-4xl leading-none">
                 {match.away_flag?.startsWith("http") ? (
@@ -202,25 +268,29 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
               <span className="text-[13px] font-semibold text-[#e5e2e1] text-center line-clamp-2 min-h-[32px] flex items-center justify-center leading-tight">
                 {match.away_team}
               </span>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => handleChange("away", -1)} 
-                  disabled={isLocked} 
-                  className="w-7 h-7 rounded bg-[#222] flex items-center justify-center hover:bg-[#2e2e2e] text-[#8a9a8e] hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                >
-                  <span className="material-symbols-rounded text-[16px]">remove</span>
-                </button>
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[20px] font-bold bg-[#111] border border-white/5 text-[#e5e2e1]">
-                  {awayScore ?? "-"}
+              
+              {/* Botões do Time Fora (Ocultos se o jogo já começou) */}
+              {!showRealScore && (
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => handleChange("away", -1)} 
+                    disabled={isLocked} 
+                    className="w-7 h-7 rounded bg-[#222] flex items-center justify-center hover:bg-[#2e2e2e] text-[#8a9a8e] hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <span className="material-symbols-rounded text-[16px]">remove</span>
+                  </button>
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[20px] font-bold bg-[#111] border border-white/5 text-[#e5e2e1]">
+                    {awayScore ?? "-"}
+                  </div>
+                  <button 
+                    onClick={() => handleChange("away", 1)} 
+                    disabled={isLocked} 
+                    className="w-7 h-7 rounded bg-[#222] flex items-center justify-center hover:bg-[#2e2e2e] text-[#8a9a8e] hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <span className="material-symbols-rounded text-[16px]">add</span>
+                  </button>
                 </div>
-                <button 
-                  onClick={() => handleChange("away", 1)} 
-                  disabled={isLocked} 
-                  className="w-7 h-7 rounded bg-[#222] flex items-center justify-center hover:bg-[#2e2e2e] text-[#8a9a8e] hover:text-white disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                >
-                  <span className="material-symbols-rounded text-[16px]">add</span>
-                </button>
-              </div>
+              )}
             </div>
 
           </div>
