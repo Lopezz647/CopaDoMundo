@@ -23,36 +23,43 @@ export default function Sidebar() {
       transition={{ duration: 0.25, ease: "easeInOut" }}
       className="relative h-screen bg-[#0d0d0d] z-20 flex flex-col flex-shrink-0 border-r border-white/5"
     >
-      {/* Logo Unificada */}
+      {/* Logo Unificada com Texto Condicional */}
       <div className="flex items-center justify-start px-4 py-5 flex-shrink-0 h-[80px]">
         <AnimatePresence mode="wait">
           {collapsed ? (
             <motion.div
               key="collapsed"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-8 h-8 flex items-center justify-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.15 }}
+              className="w-8 h-8 flex items-center justify-center flex-shrink-0"
             >
               <img 
                 src="/logo-esquerda.png" 
-                alt="Bolão DRH-1" 
-                className="w-auto h-8 object-contain" 
+                alt="Logo" 
+                className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]" 
               />
             </motion.div>
           ) : (
             <motion.div
               key="expanded"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.2 }}
+              className="flex items-center gap-3 overflow-hidden"
             >
-              <img 
-                src="/logo-esquerda.png" 
-                alt="Bolão DRH-1" 
-                className="w-auto h-12 md:h-14 object-contain" 
-              />
+              <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+                <img 
+                  src="/logo-esquerda.png" 
+                  alt="Logo" 
+                  className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]" 
+                />
+              </div>
+              <span className="text-[#e5e2e1] font-bold text-[14px] tracking-wider whitespace-nowrap">
+                BOLÃO DRH-1
+              </span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -75,9 +82,7 @@ export default function Sidebar() {
             >
               <span
                 className="material-symbols-rounded text-[20px] flex-shrink-0"
-                style={{
-                  fontVariationSettings: "'FILL' 0, 'wght' 400",
-                }}
+                style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
               >
                 {item.icon}
               </span>
