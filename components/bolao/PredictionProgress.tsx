@@ -20,8 +20,6 @@ export default function PredictionProgress({ made, total, multiplier }: Predicti
         <span className="text-xs text-muted-foreground font-medium">{percentage}%</span>
       </div>
       
-      {/* Adicione esta linha exata abaixo para o TypeScript ignorar o erro do value */}
-      {/* @ts-expect-error: Componente Progress está sem a tipagem correta exportada */}
       <Progress value={percentage} className="h-1.5 bg-muted" />
       
       {multiplier && (
