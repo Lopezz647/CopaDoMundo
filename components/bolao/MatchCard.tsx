@@ -4,7 +4,40 @@ import { validatePrediction } from '@/lib/validators';
 import { isMatchTimeLocked, formatMatchTime } from '@/lib/timezone-utils';
 import { getMatchState } from '@/lib/match-status';
 
-export default function MatchCard({ match, prediction, onPredictionChange }) {
+// --- INTERFACES DE TIPAGEM ---
+interface MatchScore {
+  home: number | null;
+  away: number | null;
+}
+
+interface Match {
+  id: string;
+  status?: string;
+  utcDate?: string;
+  match_date: string;
+  home_team: string;
+  away_team: string;
+  home_flag?: string;
+  away_flag?: string;
+  score?: {
+    fullTime?: MatchScore;
+    regularTime?: MatchScore;
+  };
+}
+
+interface Prediction {
+  home_score: number | null;
+  away_score: number | null;
+}
+
+interface MatchCardProps {
+  match: Match;
+  prediction?: Prediction | null;
+  onPredictionChange?: (matchId: string, homeScore: number, awayScore: number) => Promise<void> | void;
+}
+// -----------------------------
+
+export default function MatchCard({ match, prediction, onPredictionChange }: MatchCardProps) {
   const [homeScore, setHomeScore] = useState<number | null>(prediction?.home_score ?? null);
   const [awayScore, setAwayScore] = useState<number | null>(prediction?.away_score ?? null);
   
@@ -80,34 +113,34 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
 
   const hasPrediction = homeScore !== null && awayScore !== null;
 
-const handleChange = async (side: "home" | "away", delta: number) => {
-  if (isLocked) return
-  
-  const currentHome = homeScore ?? 0
-  const currentAway = awayScore ?? 0
+  const handleChange = async (side: "home" | "away", delta: number) => {
+    if (isLocked) return;
+    
+    const currentHome = homeScore ?? 0;
+    const currentAway = awayScore ?? 0;
 
-  let nextHome = currentHome
-  let nextAway = currentAway
+    let nextHome = currentHome;
+    let nextAway = currentAway;
 
-  if (side === "home") {
-    nextHome = Math.max(0, Math.min(20, currentHome + delta)) // Limita a 20
-    setHomeScore(nextHome)
-    setAwayScore(currentAway)
-  } else {
-    nextAway = Math.max(0, Math.min(20, currentAway + delta)) // Limita a 20
-    setAwayScore(nextAway)
-    setHomeScore(currentHome)
-  }
+    if (side === "home") {
+      nextHome = Math.max(0, Math.min(20, currentHome + delta)); // Limita a 20
+      setHomeScore(nextHome);
+      setAwayScore(currentAway);
+    } else {
+      nextAway = Math.max(0, Math.min(20, currentAway + delta)); // Limita a 20
+      setAwayScore(nextAway);
+      setHomeScore(currentHome);
+    }
 
-  // Validar antes de salvar
-  const validation = validatePrediction(nextHome, nextAway)
-  if (!validation.valid) {
-    console.error('Erro de validação:', validation.errors)
-    return
-  }
+    // Validar antes de salvar
+    const validation = validatePrediction(nextHome, nextAway);
+    if (!validation.valid) {
+      console.error('Erro de validação:', validation.errors);
+      return;
+    }
 
-  setSaveStatus("loading")
-  // ... resto do código
+    setSaveStatus("loading");
+    
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     try {
@@ -303,7 +336,7 @@ const handleChange = async (side: "home" | "away", delta: number) => {
       <PredictionsModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        match={match}
+        match={match as any} // Passado como any internamente caso o PredictionsModal tenha tipagem diferente
         currentPrediction={{ home_score: homeScore, away_score: awayScore }}
       />
     </>
