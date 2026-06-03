@@ -12,7 +12,7 @@ const THEMES = {
   dark: ".dark"
 }
 
-const ChartContext = React.createContext(null)
+const ChartContext = React.createContext<any>(null)
 
 function useChart() {
   const context = React.useContext(ChartContext)
@@ -24,7 +24,10 @@ function useChart() {
   return context
 }
 
-const ChartContainer = React.forwardRef(({ id, className, children, config, ...props }, ref) => {
+const ChartContainer = React.forwardRef((
+  { id, className, children, config, ...props }: any, // <-- CORREÇÃO AQUI
+  ref
+) => {
   const uniqueId = React.useId()
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`
 
@@ -32,7 +35,7 @@ const ChartContainer = React.forwardRef(({ id, className, children, config, ...p
     <ChartContext.Provider value={{ config }}>
       <div
         data-chart={chartId}
-        ref={ref}
+        ref={ref as any}
         className={cn(
           "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
           className
@@ -51,8 +54,8 @@ ChartContainer.displayName = "Chart"
 const ChartStyle = ({
   id,
   config
-}) => {
-  const colorConfig = Object.entries(config).filter(([, config]) => config.theme || config.color)
+}: any) => { // <-- CORREÇÃO AQUI
+  const colorConfig = Object.entries(config).filter(([, config]: any) => config.theme || config.color)
 
   if (!colorConfig.length) {
     return null
@@ -65,7 +68,7 @@ const ChartStyle = ({
           .map(([theme, prefix]) => `
 ${prefix} [data-chart=${id}] {
 ${colorConfig
-.map(([key, itemConfig]) => {
+.map(([key, itemConfig]: any) => {
 const color =
   itemConfig.theme?.[theme] ||
   itemConfig.color
@@ -96,7 +99,7 @@ const ChartTooltipContent = React.forwardRef((
     color,
     nameKey,
     labelKey,
-  },
+  }: any, // <-- CORREÇÃO AQUI
   ref
 ) => {
   const { config } = useChart()
@@ -145,14 +148,14 @@ const ChartTooltipContent = React.forwardRef((
 
   return (
     <div
-      ref={ref}
+      ref={ref as any}
       className={cn(
         "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
         className
       )}>
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
-        {payload.map((item, index) => {
+        {payload.map((item: any, index: number) => {
           const key = `${nameKey || item.name || item.dataKey || "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
           const indicatorColor = color || item.payload.fill || item.color
@@ -184,7 +187,7 @@ const ChartTooltipContent = React.forwardRef((
                           {
                             "--color-bg": indicatorColor,
                             "--color-border": indicatorColor
-                          }
+                          } as React.CSSProperties
                         } />
                     )
                   )}
@@ -219,7 +222,7 @@ ChartTooltipContent.displayName = "ChartTooltip"
 const ChartLegend = RechartsPrimitive.Legend
 
 const ChartLegendContent = React.forwardRef((
-  { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey },
+  { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey }: any, // <-- CORREÇÃO AQUI
   ref
 ) => {
   const { config } = useChart()
@@ -230,13 +233,13 @@ const ChartLegendContent = React.forwardRef((
 
   return (
     <div
-      ref={ref}
+      ref={ref as any}
       className={cn(
         "flex items-center justify-center gap-4",
         verticalAlign === "top" ? "pb-3" : "pt-3",
         className
       )}>
-      {payload.map((item) => {
+      {payload.map((item: any) => {
         const key = `${nameKey || item.dataKey || "value"}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
@@ -266,9 +269,9 @@ ChartLegendContent.displayName = "ChartLegend"
 
 // Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
-  config,
-  payload,
-  key
+  config: any,
+  payload: any,
+  key: string
 ) {
   if (typeof payload !== "object" || payload === null) {
     return undefined
