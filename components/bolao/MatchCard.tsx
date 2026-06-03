@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import PredictionsModal from "./PredictionsModal";
+import { validatePrediction } from '@/lib/validators';
+import { isMatchTimeLocked, formatMatchTime } from '@/lib/timezone-utils';
+import { getMatchState } from '@/lib/match-status';
 
 export default function MatchCard({ match, prediction, onPredictionChange }) {
   const [homeScore, setHomeScore] = useState<number | null>(prediction?.home_score ?? null);
@@ -77,26 +80,35 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
 
   const hasPrediction = homeScore !== null && awayScore !== null;
 
-  const handleChange = async (side: "home" | "away", delta: number) => {
-    if (isLocked) return; 
-    
-    const currentHome = homeScore ?? 0;
-    const currentAway = awayScore ?? 0;
+const handleChange = async (side: "home" | "away", delta: number) => {
+  if (isLocked) return
+  
+  const currentHome = homeScore ?? 0
+  const currentAway = awayScore ?? 0
 
-    let nextHome = currentHome;
-    let nextAway = currentAway;
+  let nextHome = currentHome
+  let nextAway = currentAway
 
-    if (side === "home") {
-      nextHome = Math.max(0, currentHome + delta);
-      setHomeScore(nextHome);
-      setAwayScore(currentAway);
-    } else {
-      nextAway = Math.max(0, currentAway + delta);
-      setAwayScore(nextAway);
-      setHomeScore(currentHome);
-    }
+  if (side === "home") {
+    nextHome = Math.max(0, Math.min(20, currentHome + delta)) // Limita a 20
+    setHomeScore(nextHome)
+    setAwayScore(currentAway)
+  } else {
+    nextAway = Math.max(0, Math.min(20, currentAway + delta)) // Limita a 20
+    setAwayScore(nextAway)
+    setHomeScore(currentHome)
+  }
 
-    setSaveStatus("loading");
+  // Validar antes de salvar
+  const validation = validatePrediction(nextHome, nextAway)
+  if (!validation.valid) {
+    console.error('Erro de validação:', validation.errors)
+    return
+  }
+
+  setSaveStatus("loading")
+  // ... resto do código
+}
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     try {
