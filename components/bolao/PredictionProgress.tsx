@@ -19,9 +19,7 @@ export default function PredictionProgress({ made, total, multiplier }: Predicti
         </p>
         <span className="text-xs text-muted-foreground font-medium">{percentage}%</span>
       </div>
-      
       <Progress value={percentage} className="h-1.5 bg-muted" />
-      
       {multiplier && (
         <div className="flex items-center gap-2">
           <span className="text-accent text-sm">🔥</span>
