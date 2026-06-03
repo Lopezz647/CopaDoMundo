@@ -4,17 +4,17 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   const API_KEY = process.env.NEXT_PUBLIC_API_TOKEN
-
+  
   if (!API_KEY) {
     console.error("❌ ERRO: O Token da API não foi encontrado nas variáveis de ambiente.")
     return NextResponse.json({ error: 'Chave da API não configurada' }, { status: 401 })
   }
 
   try {
-    const res = await fetch('https://api.football-data.org/v4/competitions/WC/matches', {
-      headers: { 'X-Auth-Token': API_KEY },
-      next: { revalidate: 60 }
-    })
+    const respostaApi = await fetch("https://api.football-data.org/v4/competitions/WC/matches", {
+  headers: { "X-Auth-Token": API_KEY ?? "" },
+  next: { revalidate: 30 } // Evita estourar o limite da API
+});
 
     if (!res.ok) {
       // Aqui vamos capturar o erro exato que a API externa retornou (ex: 403 Forbidden, 429 Too Many Requests)
