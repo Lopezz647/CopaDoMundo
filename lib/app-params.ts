@@ -5,7 +5,10 @@ const storage = windowObj.localStorage;
 const toSnakeCase = (str: string) => {
 	return str.replace(/([A-Z])/g, '_$1').toLowerCase();
 }
-const getAppParamValue = (paramName, { defaultValue = undefined, removeFromUrl = false } = {}) => {
+const getAppParamValue = (
+  paramName: string, 
+  { defaultValue = undefined, removeFromUrl = false }: { defaultValue?: any, removeFromUrl?: boolean } = {}
+) => {
 	if (isNode) {
 		return defaultValue;
 	}
