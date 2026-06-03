@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
-import { BookOpen, CheckCircle, AlertTriangle, Trophy, Target, Zap } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, BookOpen, CheckCircle, AlertTriangle, Trophy, Target, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
 const rules = [
@@ -40,11 +41,23 @@ const rules = [
 export default function Regras() {
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-12 mt-6">
-      <div className="flex items-center gap-3 px-2">
-        <BookOpen className="w-7 h-7 text-[#4edea3]" />
-        <h1 className="text-2xl font-bold text-[#e5e2e1]">Regras do Bolão</h1>
+      
+      {/* HEADER COM BOTÃO VOLTAR */}
+      <div className="flex items-center gap-4 px-2 mb-8">
+        <Link 
+          href="/dashboard"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/5 text-[#8a9a8e] hover:text-[#4edea3] hover:border-[#4edea3]/30 hover:bg-[#4edea3]/10 transition-all shadow-sm"
+          title="Voltar ao início"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <div className="flex items-center gap-3">
+          <BookOpen className="w-7 h-7 text-[#4edea3]" />
+          <h1 className="text-2xl font-bold text-[#e5e2e1]">Regras do Bolão</h1>
+        </div>
       </div>
 
+      {/* CARDS DAS REGRAS */}
       <div className="space-y-4">
         {rules.map((rule, idx) => (
           <motion.div
@@ -60,11 +73,7 @@ export default function Regras() {
               </div>
               <h2 className="text-lg font-bold text-[#e5e2e1]">{rule.title}</h2>
             </div>
-            
-            {rule.description && (
-              <p className="text-[14px] text-[#8a9a8e] leading-relaxed">{rule.description}</p>
-            )}
-            
+            {rule.description && <p className="text-[14px] text-[#8a9a8e] leading-relaxed">{rule.description}</p>}
             {rule.items && (
               <ul className="space-y-3 mt-2">
                 {rule.items.map((item, i) => (
