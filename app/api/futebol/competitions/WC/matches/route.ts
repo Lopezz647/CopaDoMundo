@@ -5,23 +5,29 @@ import { NextResponse } from 'next/server'
 export async function GET() {
   const API_KEY = process.env.NEXT_PUBLIC_API_TOKEN
   
-  if (!API_KEY) {
-    console.error("❌ ERRO: O Token da API não foi encontrado nas variáveis de ambiente.")
-    return NextResponse.json({ error: 'Chave da API não configurada' }, { status: 401 })
+  const res = await fetch(
+  "https://api.football-data.org/v4/competitions/WC/matches",
+  {
+    headers: {
+      "X-Auth-Token": API_KEY ?? "",
+    },
+    next: { revalidate: 30 },
   }
+);
 
-  try {
-    const respostaApi = await fetch("https://api.football-data.org/v4/competitions/WC/matches", {
-  headers: { "X-Auth-Token": API_KEY ?? "" },
-  next: { revalidate: 30 } // Evita estourar o limite da API
-});
+if (!respostaApi.ok) {
+  const errorText = await respostaApi.text();
 
-    if (!res.ok) {
-      // Aqui vamos capturar o erro exato que a API externa retornou (ex: 403 Forbidden, 429 Too Many Requests)
-      const errorText = await res.text();
-      console.error(`❌ ERRO FOOTBALL-DATA (Status ${res.status}):`, errorText);
-      throw new Error(`Falha na API: Status ${res.status}`);
-    }
+  console.error(
+    `❌ ERRO FOOTBALL-DATA (Status ${respostaApi.status}):`,
+    errorText
+  );
+
+  throw new Error(
+    `Falha na API: Status ${respostaApi.status}`
+  );
+}
+
 
     const data = await res.json()
     // --- INÍCIO DO MOCK (MÁQUINA DO TEMPO) ---
