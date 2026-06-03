@@ -1,7 +1,8 @@
+// next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false, // ✅ HABILITADO - vai falhar se houver erros
   },
   images: {
     unoptimized: true,
