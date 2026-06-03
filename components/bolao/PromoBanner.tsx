@@ -72,6 +72,14 @@ export default function PromoBanner() {
 
   return (
     <>
+      {/* SEU BANNER ORIGINAL INTACTO */}
+      <div
+        className="rounded-xl overflow-hidden relative"
+        style={{ background: "linear-gradient(135deg, #1a2e24 0%, #0f1f17 60%, #0a0a0a 100%)", border: "1px solid rgba(78,222,163,0.15)" }}
+      >
+        <div className="relative p-5 flex flex-col md:flex-row items-center justify-between gap-5">
+          <div className="flex items-center gap-5 w-full md:w-auto">
+            {/* FIFA-style trophy circle */}
 <div
   className="w-[72px] h-[72px] rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
   style={{
@@ -86,6 +94,7 @@ export default function PromoBanner() {
     className="w-full h-full object-cover"
   />
 </div>
+
             <div className="flex flex-col gap-1.5">
               <h1 className="text-[22px] font-bold text-[#e5e2e1] leading-none">Bolão DRH-1</h1>
               <div className="flex items-center gap-1.5 text-[12px] text-[#4edea3]">
