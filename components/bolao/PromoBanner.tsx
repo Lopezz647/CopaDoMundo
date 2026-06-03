@@ -17,12 +17,15 @@ export default function PromoBanner() {
               boxShadow: "0 0 20px rgba(78,222,163,0.1)" 
             }}
           >
-            <img 
-              src="/logo-copa.png" 
-              alt="Troféu Copa do Mundo" 
-              className="w-[72px] h-[72px] object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-transform hover:scale-110"
-            />
-          </div>
+            <div
+  className="w-[72px] h-[72px] rounded-full overflow-hidden flex items-center justify-center"
+>
+  <img
+    src="/logo-copa.png"
+    alt="Troféu Copa do Mundo"
+    className="w-full h-full object-cover"
+  />
+</div>
 
           <div className="flex flex-col gap-1.5">
             <h1 className="text-[22px] font-bold text-[#e5e2e1] leading-none">Bolão DRH-1</h1>
