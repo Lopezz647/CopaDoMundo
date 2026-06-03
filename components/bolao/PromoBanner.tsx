@@ -20,7 +20,7 @@ export default function PromoBanner() {
             <img 
               src="/logo-copa.png" 
               alt="Troféu Copa do Mundo" 
-              className="w-[48px] h-[48px] object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-transform hover:scale-110"
+              className="w-[72px] h-[72px] object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-transform hover:scale-110"
             />
           </div>
 
