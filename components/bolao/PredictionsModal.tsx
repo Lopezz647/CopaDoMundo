@@ -52,13 +52,17 @@ export default function PredictionsModal({ isOpen, onClose, match }: any) {
         }
 
         // 3. Formata os membros para exibição
-        const membersList = (predictionsData || []).map(p => ({
-          id: p.user_id,
-          name: p.user_id === user?.id ? "Você" : (p.profiles?.name || "Usuário"),
-          avatar: p.profiles?.avatar_url,
-          isMe: p.user_id === user?.id,
-          prediction: { home_score: p.home_score, away_score: p.away_score }
-        }));
+        const membersList = (predictionsData || []).map(p => {
+          const hasValidScore = p.home_score != null && p.away_score != null;
+          
+          return {
+            id: p.user_id,
+            name: p.user_id === user?.id ? "Você" : (p.profiles?.name || "Usuário"),
+            avatar: p.profiles?.avatar_url,
+            isMe: p.user_id === user?.id,
+            prediction: hasValidScore ? { home_score: p.home_score, away_score: p.away_score } : null
+          };
+        });
 
         // 4. Se o próprio usuário logado não estiver na lista de quem palpitou, adiciona ele
         if (user && !membersList.find(m => m.id === user.id)) {
