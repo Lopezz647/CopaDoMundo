@@ -1,5 +1,5 @@
 import React from "react";
-import { Progress } from "@/components/ui-dashboard/progress";
+import { Progress } from "@/components/ui/progress";
 
 interface PredictionProgressProps {
   made: number;

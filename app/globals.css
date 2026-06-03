@@ -21,7 +21,7 @@
     'opsz' 24;
 }
 
-@source "../components/ui-dashboard";
+@source "../components/ui";
 
 @layer base {
   :root {

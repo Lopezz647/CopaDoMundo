@@ -1,6 +1,6 @@
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/ui-dashboard/badge";
+import { Badge } from "@/components/ui/badge";
 
 // 1. Criamos a interface para as propriedades
 interface RoundNavigationProps {

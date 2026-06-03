@@ -2,7 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { Trophy, Target, Users, BookOpen, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui-dashboard/button";
+import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
 const quickLinks = [

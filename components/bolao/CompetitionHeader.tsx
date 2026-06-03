@@ -1,6 +1,6 @@
 import React from "react";
-import { Badge } from "@/components/ui-dashboard/badge";
-import { Button } from "@/components/ui-dashboard/button";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { TableProperties } from "lucide-react";
 
 export default function CompetitionHeader() {

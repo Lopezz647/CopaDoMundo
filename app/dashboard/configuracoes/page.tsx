@@ -5,11 +5,11 @@ import { Settings, User, Bell, Shield, LogOut, Loader2, Camera } from "lucide-re
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-import { Button } from "@/components/ui-dashboard/button";
-import { Input } from "@/components/ui-dashboard/input";
-import { Label } from "@/components/ui-dashboard/label";
-import { Switch } from "@/components/ui-dashboard/switch";
-import { Separator } from "@/components/ui-dashboard/separator";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 
 import { motion } from "framer-motion";
 
