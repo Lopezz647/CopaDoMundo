@@ -9,16 +9,21 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
   const [saveStatus, setSaveStatus] = useState<"idle" | "loading" | "success">("idle");
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Estados para controle dinâmico do tempo e status
+  // Estados para controle dinâmico do tempo
   const [timeLeftStr, setTimeLeftStr] = useState("");
   const [isTimeLocked, setIsTimeLocked] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Status Inteligente do Jogo
-  const isLive = match.status === "IN_PLAY" || match.status === "PAUSED";
-  const isFinished = match.status === "FINISHED";
+  // 1. CORREÇÃO: Status e Horário extraídos no escopo principal do componente
+  const status = match.status?.toUpperCase() || "TIMED";
+  const isFinished = ["FINISHED", "FT", "AET"].includes(status);
+  const isLive = ["IN_PLAY", "PAUSED", "LIVE", "HT", "1H", "2H", "ET", "PEN"].includes(status);
+  const isPending = !isFinished && !isLive;
   const showRealScore = isLive || isFinished;
   
+  const dateObj = new Date(match.utcDate || match.match_date);
+  const timeStr = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
   // O card bloqueia cliques se o tempo acabou, ou se o jogo começou/terminou
   const isLocked = isTimeLocked || isLive || isFinished;
 
@@ -27,7 +32,7 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
     setAwayScore(prediction?.away_score ?? null);
   }, [prediction]);
 
-  // Lógica de contagem regressiva dinâmica em tempo real
+  // Lógica de contagem regressiva dinâmica
   useEffect(() => {
     if (isLive || isFinished) {
       setIsTimeLocked(true);
@@ -72,7 +77,6 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
 
   const hasPrediction = homeScore !== null && awayScore !== null;
 
-  // Lógica com salvamento Assíncrono para ativar a animação
   const handleChange = async (side: "home" | "away", delta: number) => {
     if (isLocked) return; 
     
@@ -92,45 +96,35 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
       setHomeScore(currentHome);
     }
 
-    // Inicia a animação de "Carregando"
     setSaveStatus("loading");
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     try {
-      // Aguarda o banco de dados salvar
       await onPredictionChange?.(match.id, nextHome, nextAway);
-      
-      // Quando sucesso, muda para o check verde
       setSaveStatus("success");
-      
-      // Retorna para o "X" após 2 segundos
       timeoutRef.current = setTimeout(() => {
         setSaveStatus("idle");
       }, 2000);
-
     } catch (error) {
-      // Em caso de falha de conexão, reseta imediatamente
       setSaveStatus("idle");
     }
   };
 
-  // Extração do Placar Real da API
   const realHomeScore = match.score?.fullTime?.home ?? match.score?.regularTime?.home;
   const realAwayScore = match.score?.fullTime?.away ?? match.score?.regularTime?.away;
 
-  // Componente Condicional de Badges
+  // 2. CORREÇÃO: Aplicação do NEON azul pulsante no status "isLive"
   let StatusBadge;
   if (isFinished) {
     StatusBadge = (
-      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-white/5 text-[#8a9a8e] uppercase tracking-wider">
         <span className="material-symbols-rounded text-[14px]">check_circle</span>
         Encerrado
       </div>
     );
   } else if (isLive) {
     StatusBadge = (
-      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider">
-        <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-blue-500/10 text-blue-400 border border-blue-500/40 uppercase tracking-wider shadow-[0_0_12px_rgba(59,130,246,0.3)] animate-pulse">
         Partida em Andamento
       </div>
     );
@@ -158,18 +152,12 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-black/10">
           <div className="flex items-center gap-2">
-            
-            {/* Oculta o selo "Sem palpite" quando já houver um palpite feito, se o jogo já estiver rolando/encerrado, ele também não é mais tão útil, mas mantive a sua lógica base */}
             {!hasPrediction && (
-              <div
-                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-[#222] text-[#8a9a8e] border border-white/5"
-              >
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-[#222] text-[#8a9a8e] border border-white/5">
                 <span className="material-symbols-rounded text-[12px]">help</span>
                 Sem palpite
               </div>
             )}
-
-            {/* Renderiza o Badge Inteligente */}
             {StatusBadge}
           </div>
 
@@ -198,7 +186,6 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
                 {match.home_team}
               </span>
               
-              {/* Botões do Time Casa (Ocultos se o jogo já começou) */}
               {!showRealScore && (
                 <div className="flex items-center gap-2">
                   <button 
@@ -222,13 +209,12 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
               )}
             </div>
 
-            {/* ====== CONTAINER CENTRAL ====== */}
+            {/* ====== CONTAINER CENTRAL (X ou Placar Real) ====== */}
             {showRealScore ? (
-              // Modo "Em Andamento" / "Encerrado": Exibe Placar Real e Meu Palpite Cinza
               <div className="flex flex-col items-center justify-center mx-2">
                 <div className="flex items-center gap-4 mb-3">
                   <span className="text-4xl font-black text-white">{realHomeScore ?? 0}</span>
-                  <span className={`text-xl font-bold ${isLive ? 'text-blue-400 animate-pulse' : 'text-[#8a9a8e]'}`}>X</span>
+                  <span className={`text-xl font-bold ${isLive ? 'text-blue-400 animate-pulse drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'text-[#8a9a8e]'}`}>X</span>
                   <span className="text-4xl font-black text-white">{realAwayScore ?? 0}</span>
                 </div>
                 
@@ -242,17 +228,24 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
                 </div>
               </div>
             ) : (
-              // Modo "Aposta Normal": Exibe sua animação de Loading e o "X"
-              <div className="w-8 h-8 flex items-center justify-center relative">
-                {saveStatus === "idle" && (
-                  <div className="text-[#333] font-bold text-xl select-none transition-all duration-300">×</div>
+              // 3. CORREÇÃO: Horário inserido acima do "X" com ocultação automática 
+              <div className="flex flex-col items-center justify-center min-w-[70px]">
+                {isPending && (
+                  <span className="text-[10px] font-medium text-[#8a9a8e] mb-1.5 tracking-wider">
+                    {timeStr}
+                  </span>
                 )}
-                {saveStatus === "loading" && (
-                  <div className="w-4 h-4 rounded-full border-2 border-[#4edea3]/30 border-t-[#4edea3] animate-spin transition-all duration-300"></div>
-                )}
-                {saveStatus === "success" && (
-                  <span className="material-symbols-rounded text-[#4edea3] text-[18px] transition-all duration-300 drop-shadow-[0_0_8px_rgba(78,222,163,0.5)]">check_circle</span>
-                )}
+                <div className="w-8 h-8 flex items-center justify-center relative bg-white/5 rounded-md">
+                  {saveStatus === "idle" && (
+                    <div className="text-[#8a9a8e] font-bold text-[14px] select-none transition-all duration-300">X</div>
+                  )}
+                  {saveStatus === "loading" && (
+                    <div className="w-4 h-4 rounded-full border-2 border-[#4edea3]/30 border-t-[#4edea3] animate-spin transition-all duration-300"></div>
+                  )}
+                  {saveStatus === "success" && (
+                    <span className="material-symbols-rounded text-[#4edea3] text-[18px] transition-all duration-300 drop-shadow-[0_0_8px_rgba(78,222,163,0.5)]">check_circle</span>
+                  )}
+                </div>
               </div>
             )}
 
@@ -269,7 +262,6 @@ export default function MatchCard({ match, prediction, onPredictionChange }) {
                 {match.away_team}
               </span>
               
-              {/* Botões do Time Fora (Ocultos se o jogo já começou) */}
               {!showRealScore && (
                 <div className="flex items-center gap-2">
                   <button 
