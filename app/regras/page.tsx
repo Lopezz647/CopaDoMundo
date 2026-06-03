@@ -1,169 +1,83 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Trophy, Target, Award, Users, ArrowLeft, CheckCircle } from 'lucide-react'
-import Link from 'next/link'
+"use client";
+import React from "react";
+import { BookOpen, CheckCircle, AlertTriangle, Trophy, Target, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 
-export default function RegrasPage() {
+const rules = [
+  {
+    icon: Target,
+    title: "Como funciona",
+    description: "Cada participante faz palpites sobre o placar dos jogos da Copa do Mundo 2026. Os palpites devem ser feitos até 15 minutos antes do início de cada jogo.",
+  },
+  {
+    icon: Trophy,
+    title: "Pontuação",
+    items: [
+      "Placar exato: 10 pontos",
+      "Acertar o vencedor + diferença de gols: 7 pontos",
+      "Acertar o vencedor: 5 pontos",
+      "Acertar tendência (ex: empate sem placar exato): 2 pontos",
+      "Errou tudo: 0 pontos",
+    ],
+  },
+  {
+    icon: Zap,
+    title: "Multiplicadores",
+    description: "Algumas rodadas possuem multiplicadores especiais (2x, 3x). Nessas rodadas, a pontuação é multiplicada automaticamente. Fique atento ao badge de multiplicador!",
+  },
+  {
+    icon: AlertTriangle,
+    title: "Regras Importantes",
+    items: [
+      "Palpites não podem ser alterados após o início do jogo",
+      "Cada jogador pode fazer apenas um palpite por jogo",
+      "Em caso de empate no ranking, o critério de desempate é número de placares exatos (10 pts)",
+      "Jogos adiados serão reagendados automaticamente",
+    ],
+  },
+];
+
+export default function Regras() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-950 py-12">
-      <div className="mx-auto max-w-3xl px-6">
-        <div className="mb-8">
-          <Button
-            asChild
-            variant="ghost"
-            className="mb-4 text-emerald-200 hover:bg-emerald-700 hover:text-white"
+    <div className="max-w-3xl mx-auto space-y-6 pb-12 mt-6">
+      <div className="flex items-center gap-3 px-2">
+        <BookOpen className="w-7 h-7 text-[#4edea3]" />
+        <h1 className="text-2xl font-bold text-[#e5e2e1]">Regras do Bolão</h1>
+      </div>
+
+      <div className="space-y-4">
+        {rules.map((rule, idx) => (
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.1 }}
+            className="bg-[#141414] rounded-xl border border-white/5 p-6 hover:border-[#4edea3]/20 transition-colors shadow-sm"
           >
-            <Link href="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar
-            </Link>
-          </Button>
-
-          <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500">
-              <Trophy className="h-8 w-8 text-white" />
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-[#4edea3]/10 border border-[#4edea3]/20 flex items-center justify-center shadow-[0_0_10px_rgba(78,222,163,0.1)]">
+                <rule.icon className="w-5 h-5 text-[#4edea3]" />
+              </div>
+              <h2 className="text-lg font-bold text-[#e5e2e1]">{rule.title}</h2>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white">Regras do Bolão</h1>
-              <p className="text-emerald-200">{"Bolão Copa DRH-1"} - Copa 2026</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          {/* Sistema de Pontuação */}
-          <Card className="border-emerald-700 bg-white/95 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-emerald-800">
-                <Award className="h-5 w-5" />
-                Sistema de Pontuação
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-white font-bold">
-                    10
-                  </div>
-                  <div>
-                    <p className="font-semibold text-amber-800">Placar Exato</p>
-                    <p className="text-sm text-amber-600">Acertar o placar exato do jogo</p>
-                    <p className="text-xs text-amber-500">{"Ex: Palpite 2x1, Resultado 2x1"}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-white font-bold">
-                    5
-                  </div>
-                  <div>
-                    <p className="font-semibold text-emerald-800">Resultado Certo</p>
-                    <p className="text-sm text-emerald-600">Acertar vitória/empate com diferença de gols correta</p>
-                    <p className="text-xs text-emerald-500">{"Ex: Palpite 3x1, Resultado 2x0 (ambos vitória por 2)"}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-white font-bold">
-                    3
-                  </div>
-                  <div>
-                    <p className="font-semibold text-blue-800">Vencedor Certo</p>
-                    <p className="text-sm text-blue-600">Acertar apenas o vencedor do jogo</p>
-                    <p className="text-xs text-blue-500">{"Ex: Palpite 3x0, Resultado 1x0 (ambos vitória do mandante)"}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 text-white font-bold">
-                    0
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-700">Nenhum Acerto</p>
-                    <p className="text-sm text-gray-600">{"Não acertou nenhum dos critérios acima"}</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Como Participar */}
-          <Card className="border-emerald-700 bg-white/95 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-emerald-800">
-                <Target className="h-5 w-5" />
-                Como Participar
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                {[
-                  'Crie sua conta com e-mail e senha',
-                  'Confirme seu e-mail clicando no link enviado',
-                  'Acesse o dashboard e veja os jogos disponíveis',
-                  'Faça seus palpites antes do início de cada jogo',
-                  'Acompanhe seus pontos e posição no ranking',
-                ].map((item, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 shrink-0 text-emerald-500" />
-                    <span>{item}</span>
+            
+            {rule.description && (
+              <p className="text-[14px] text-[#8a9a8e] leading-relaxed">{rule.description}</p>
+            )}
+            
+            {rule.items && (
+              <ul className="space-y-3 mt-2">
+                {rule.items.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <CheckCircle className="w-4 h-4 text-[#4edea3] mt-0.5 flex-shrink-0" />
+                    <span className="text-[14px] text-[#8a9a8e] font-medium">{item}</span>
                   </li>
                 ))}
               </ul>
-            </CardContent>
-          </Card>
-
-          {/* Regras Gerais */}
-          <Card className="border-emerald-700 bg-white/95 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-emerald-800">
-                <Users className="h-5 w-5" />
-                Regras Gerais
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-emerald-600">1.</span>
-                  Os palpites devem ser feitos antes do início de cada jogo
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-emerald-600">2.</span>
-                  Após o início do jogo, o palpite fica bloqueado
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-emerald-600">3.</span>
-                  É permitido alterar palpites enquanto o jogo não começou
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-emerald-600">4.</span>
-                  O ranking é atualizado após cada jogo
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold text-emerald-600">5.</span>
-                  Em caso de empate no ranking, o critério de desempate é o número de placares exatos
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mt-8 text-center">
-          <Button
-            asChild
-            size="lg"
-            className="bg-amber-500 font-semibold hover:bg-amber-600"
-          >
-            <Link href="/auth/sign-up">Participar Agora</Link>
-          </Button>
-        </div>
+            )}
+          </motion.div>
+        ))}
       </div>
     </div>
-  )
+  );
 }
