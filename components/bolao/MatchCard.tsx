@@ -108,7 +108,6 @@ const handleChange = async (side: "home" | "away", delta: number) => {
 
   setSaveStatus("loading")
   // ... resto do código
-}
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     try {
