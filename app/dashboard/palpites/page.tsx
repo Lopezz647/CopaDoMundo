@@ -348,11 +348,11 @@ export default function Palpites() {
 
         <div className="flex flex-col gap-6">
           <LiveRanking 
-            user={{ id: userId, email: userEmail, name: "Você" }} 
-            predictions={allPredictions} 
-            liveMatches={matches} 
-            dbRanking={dbRanking} 
-          />
+  user={{ id: userId || "", email: userEmail, name: "Você" }} 
+  predictions={allPredictions} 
+  liveMatches={matches} 
+  dbRanking={dbRanking} 
+/>
         </div>
       </div>
     </>
