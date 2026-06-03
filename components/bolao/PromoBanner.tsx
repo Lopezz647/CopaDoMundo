@@ -72,8 +72,20 @@ export default function PromoBanner() {
 
   return (
     <>
-     {/* FIFA-style trophy circle */} <div className="w-[72px] h-[72px] rounded-full overflow-hidden flex items-center justify-center flex-shrink-0" style={{ background: "radial-gradient(circle, #1e3d2e 0%, #0d1f16 100%)", border: "2px solid rgba(78,222,163,0.25)", boxShadow: "0 0 20px rgba(78,222,163,0.1)" }} > <img src="/logo-copa.png" alt="Troféu Copa do Mundo" className="w-full h-full object-cover" /> </div>
-
+<div
+  className="w-[72px] h-[72px] rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
+  style={{
+    background: "radial-gradient(circle, #1e3d2e 0%, #0d1f16 100%)",
+    border: "2px solid rgba(78,222,163,0.25)",
+    boxShadow: "0 0 20px rgba(78,222,163,0.1)"
+  }}
+>
+  <img
+    src="/logo-copa.png"
+    alt="Troféu Copa do Mundo"
+    className="w-full h-full object-cover"
+  />
+</div>
             <div className="flex flex-col gap-1.5">
               <h1 className="text-[22px] font-bold text-[#e5e2e1] leading-none">Bolão DRH-1</h1>
               <div className="flex items-center gap-1.5 text-[12px] text-[#4edea3]">
