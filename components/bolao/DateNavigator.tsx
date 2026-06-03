@@ -3,44 +3,47 @@ import React, { useRef, useEffect } from "react";
 const DAY_NAMES = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MONTH_NAMES = ["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
 
-const MAX_GROUP_ROUNDS = 6;
+// AJUSTE 1: Definindo o limite de grupos e o total de fases da Copa
+const MAX_GROUP_ROUNDS = 3; 
+const MAX_TOTAL_ROUNDS = 7; 
 
 export default function DateNavigator({ currentRound, onRoundChange, selectedDate, onDateChange, dates, predictions, matches }) {
-  const predictionMatchIds = new Set(predictions.map(p => p.match_id));
+  const predictionMatchIds = new Set(predictions.map((p: any) => p.match_id));
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Ref para o container que faz o scroll
-  const scrollContainerRef = useRef(null);
+  // AJUSTE 2: Função que nomeia a rodada de acordo com o número numérico (1 a 7)
+  const getRoundTitle = (round: number) => {
+    if (round <= MAX_GROUP_ROUNDS) return `Rodada ${round} - Grupos`;
+    if (round === 4) return "Oitavas de Final";
+    if (round === 5) return "Quartas de Final";
+    if (round === 6) return "Semifinal";
+    if (round === 7) return "Final";
+    return "Playoffs";
+  };
 
-  const roundTitle = currentRound <= MAX_GROUP_ROUNDS 
-    ? `Rodada - ${currentRound}` 
-    : "Playoffs";
+  const roundTitle = getRoundTitle(currentRound);
 
-  // Lógica de Auto-Scroll: Executa sempre que a data selecionada mudar
+  // Lógica de Auto-Scroll mantida intacta
   useEffect(() => {
-    // Garante que o container existe e que há uma data selecionada
     if (scrollContainerRef.current && selectedDate) {
       const container = scrollContainerRef.current;
       const selectedDateStr = new Date(selectedDate).toDateString();
       
-      // Busca o elemento do botão da data selecionada dentro do container usando um data-attribute
-const selectedButton = container.querySelector(`[data-date="${selectedDateStr}"]`);
+      const selectedButton = container.querySelector(`[data-date="${selectedDateStr}"]`) as HTMLElement;
       if (selectedButton) {
-        // Cálculos para centralizar o botão
         const containerWidth = container.offsetWidth;
         const buttonWidth = selectedButton.offsetWidth;
         const buttonLeft = selectedButton.offsetLeft;
 
-        // A posição de scroll é a posição esquerda do botão, menos metade da largura do container, mais metade da largura do botão (para compensar).
         const scrollPosition = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
 
-        // Executa o scroll suave
         container.scrollTo({
           left: scrollPosition,
           behavior: "smooth"
         });
       }
     }
-  }, [selectedDate, dates]); // Re-executa se a seleção mudar ou a lista de datas mudar
+  }, [selectedDate, dates]); 
 
   return (
     <div className="rounded-xl border border-white/5 overflow-hidden" style={{ background: "#181818" }}>
@@ -48,7 +51,8 @@ const selectedButton = container.querySelector(`[data-date="${selectedDateStr}"]
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
         <button
           onClick={() => onRoundChange(Math.max(1, currentRound - 1))}
-          className="w-7 h-7 flex items-center justify-center text-[#8a9a8e] hover:text-[#e5e2e1] transition-colors"
+          disabled={currentRound === 1}
+          className={`w-7 h-7 flex items-center justify-center transition-colors ${currentRound === 1 ? "text-white/10 cursor-not-allowed" : "text-[#8a9a8e] hover:text-[#e5e2e1]"}`}
         >
           <span className="material-symbols-rounded text-[20px]">keyboard_double_arrow_left</span>
         </button>
@@ -66,34 +70,33 @@ const selectedButton = container.querySelector(`[data-date="${selectedDateStr}"]
           )}
         </div>
 
+        {/* AJUSTE 3: Impede a seta da direita de passar da fase Final (Fase 7) */}
         <button
-          onClick={() => onRoundChange(currentRound + 1)}
-          className="w-7 h-7 flex items-center justify-center text-[#8a9a8e] hover:text-[#e5e2e1] transition-colors"
+          onClick={() => onRoundChange(Math.min(MAX_TOTAL_ROUNDS, currentRound + 1))}
+          disabled={currentRound === MAX_TOTAL_ROUNDS}
+          className={`w-7 h-7 flex items-center justify-center transition-colors ${currentRound === MAX_TOTAL_ROUNDS ? "text-white/10 cursor-not-allowed" : "text-[#8a9a8e] hover:text-[#e5e2e1]"}`}
         >
           <span className="material-symbols-rounded text-[20px]">keyboard_double_arrow_right</span>
         </button>
       </div>
 
-      {/* Date row -> AQUI APLICAMOS A NOVA CLASSE E A REF */}
       <div 
         ref={scrollContainerRef}
-        className="flex px-2 py-3 gap-1 w-full custom-scrollbar-dates"
+        className="flex px-2 py-3 gap-1 w-full custom-scrollbar-dates overflow-x-auto"
       >
-        {dates.map((date, idx) => {
+        {dates.map((date: any, idx: number) => {
           const d = new Date(date);
           const dateString = d.toDateString(); 
           const dayName = DAY_NAMES[d.getDay()];
           const dayNum = d.getDate();
           const month = MONTH_NAMES[d.getMonth()];
           
-          // CORREÇÃO: Agora compara a data do botão com a data selecionada de verdade!
           const isSelected = selectedDate && new Date(selectedDate).toDateString() === dateString;
 
-          const matchesOnDay = matches.filter(m => new Date(m.match_date).toDateString() === dateString);
-          const allPredicted = matchesOnDay.length > 0 && matchesOnDay.every(m => predictionMatchIds.has(m.id));
-          const hasPending = matchesOnDay.length > 0 && matchesOnDay.some(m => !predictionMatchIds.has(m.id));
+          const matchesOnDay = matches.filter((m: any) => new Date(m.match_date || m.utcDate).toDateString() === dateString);
+          const allPredicted = matchesOnDay.length > 0 && matchesOnDay.every((m: any) => predictionMatchIds.has(m.id));
+          const hasPending = matchesOnDay.length > 0 && matchesOnDay.some((m: any) => !predictionMatchIds.has(m.id));
 
-          // Removido o flex-1 para manter o tamanho exato no scroll
           const baseButtonClasses = "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg relative min-w-[70px] flex-shrink-0";
 
           if (isSelected) {
