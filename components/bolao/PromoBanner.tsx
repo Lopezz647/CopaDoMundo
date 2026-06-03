@@ -30,7 +30,7 @@ export default function PromoBanner() {
   const fetchMatches = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/futebol/competitions/BSA/matches");
+      const res = await fetch("/api/futebol/competitions/WC/matches");
       const data = await res.json();
       setMatches(data.matches || []);
     } catch (error) {
