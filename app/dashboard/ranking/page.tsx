@@ -242,7 +242,7 @@ export default function Ranking() {
               10: { active: "rgba(78,222,163,0.2)", color: "#4edea3", border: "rgba(78,222,163,0.4)" },
               7:  { active: "rgba(100,160,255,0.2)", color: "#64a0ff", border: "rgba(100,160,255,0.4)" },
               5:  { active: "rgba(255,185,95,0.2)", color: "#ffb95f", border: "rgba(255,185,95,0.4)" },
-              3:  { active: "rgba(180,130,255,0.2)", color: "#b482ff", border: "rgba(180,130,255,0.4)" },
+              2:  { active: "rgba(180,130,255,0.2)", color: "#b482ff", border: "rgba(180,130,255,0.4)" },
               0:  { active: "rgba(255,100,100,0.15)", color: "#ff6464", border: "rgba(255,100,100,0.35)" },
             };
             const c = colors[p];
