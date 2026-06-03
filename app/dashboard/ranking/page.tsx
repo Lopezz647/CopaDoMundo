@@ -5,17 +5,16 @@ import { createClient } from "@/lib/supabase/client";
 
 const POINT_VALUES = [10, 7, 5, 3, 0];
 
-// Mapeamento amigável de estágios/fases vindos de APIs internacionais (ex: football-data)
-const STAGE_MAP: Record<string, string> = {
-  "GROUP_STAGE": "Fase de Grupos",
-  "LAST_64": "64 Avos",
-  "LAST_32": "32 Avos",
-  "LAST_16": "Oitavas",
-  "QUARTER_FINALS": "Quartas",
-  "SEMI_FINALS": "Semifinal",
-  "THIRD_PLACE": "3° Lugar",
-  "FINAL": "Final"
-};
+// Fases fixas da Copa do Mundo para garantir o filtro correto (3 Rodadas + Mata-Mata)
+const WORLD_CUP_PHASES = [
+  { id: "ROUND_1", label: "Rodada 1" },
+  { id: "ROUND_2", label: "Rodada 2" },
+  { id: "ROUND_3", label: "Rodada 3" },
+  { id: "LAST_16", label: "Oitavas" },
+  { id: "QUARTER_FINALS", label: "Quartas" },
+  { id: "SEMI_FINALS", label: "Semifinal" },
+  { id: "FINAL", label: "Final" }
+];
 
 function MedalIcon({ rank }: { rank: number }) {
   if (rank === 1) return <span className="text-[16px]">🥇</span>;
@@ -31,7 +30,6 @@ export default function Ranking() {
   const [selectedPhase, setSelectedPhase] = useState<string>("all");
   const [filterPoints, setFilterPoints] = useState<number | null>(null);
 
-  // Estados de Dados
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [allPredictions, setAllPredictions] = useState<any[]>([]);
   const [allMatches, setAllMatches] = useState<any[]>([]);
@@ -44,17 +42,12 @@ export default function Ranking() {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
 
-      // BUSCA OS MEMBROS (Com log de erro)
       const { data: profiles, error: errorProfiles } = await supabase.from("profiles").select("*");
       if (errorProfiles) console.error("❌ Erro no Supabase (Profiles):", errorProfiles.message);
-      console.log("✅ Membros puxados do banco:", profiles);
 
-      // BUSCA OS PALPITES (Com log de erro)
       const { data: preds, error: errorPreds } = await supabase.from("predictions").select("*");
       if (errorPreds) console.error("❌ Erro no Supabase (Predictions):", errorPreds.message);
-      console.log("✅ Palpites puxados do banco:", preds);
 
-      // BUSCA OS JOGOS NA API
       try {
         const res = await fetch("/api/futebol/competitions/BSA/matches");
         const matchData = await res.json();
@@ -71,33 +64,31 @@ export default function Ranking() {
     loadData();
   }, []);
 
-  // 1. Descobre todas as fases/etapas disponíveis nas partidas
-  const phasesInData = useMemo(() => {
-    const phasesSet = new Set<string>();
-    allMatches.forEach(m => {
-      if (m.stage) phasesSet.add(m.stage);
-      else if (m.matchday) phasesSet.add(`Rodada ${m.matchday}`);
-    });
-    return Array.from(phasesSet).sort((a, b) => {
-      // Ordenação simples colocando Fase de Grupos / Rodadas menores primeiro
-      if (a.includes("GROUP") || a.includes("Rodada")) return -1;
-      if (b.includes("GROUP") || b.includes("Rodada")) return 1;
-      return 0;
-    });
-  }, [allMatches]);
-
-  // 2. Filtra partidas baseando-se na fase selecionada
+  // 1. Filtra partidas baseando-se na fase selecionada de forma exata
   const filteredMatches = useMemo(() => {
     if (selectedPhase === "all") return allMatches;
-    return allMatches.filter(m => m.stage === selectedPhase || `Rodada ${m.matchday}` === selectedPhase);
+    
+    // Se for fase de grupos (Rodadas 1, 2 ou 3)
+    if (selectedPhase.startsWith("ROUND_")) {
+      const roundNum = parseInt(selectedPhase.replace("ROUND_", ""));
+      return allMatches.filter(m => m.matchday === roundNum || (m.stage === "GROUP_STAGE" && m.matchday === roundNum));
+    }
+    
+    // Se for mata-mata
+    return allMatches.filter(m => m.stage === selectedPhase);
   }, [allMatches, selectedPhase]);
 
-  // Filtra apenas partidas concluídas para fins estatísticos de acerto
+  // Filtra apenas partidas concluídas
   const finishedMatches = useMemo(() => {
     return filteredMatches.filter(m => m.status === "FINISHED");
   }, [filteredMatches]);
 
-  // 3. CORE: Constrói e Recalcula a classificação dinamicamente
+  // VERIFICADOR DE FASE CONCLUÍDA (Para o Banner de Premiação)
+  const isPhaseFinished = useMemo(() => {
+    return filteredMatches.length > 0 && filteredMatches.every(m => m.status === "FINISHED");
+  }, [filteredMatches]);
+
+  // 2. CORE: Constrói e Recalcula a classificação dinamicamente
   const ranked = useMemo(() => {
     return allUsers.map(u => {
       const userPreds = allPredictions.filter(p => p.user_id === u.id);
@@ -107,7 +98,6 @@ export default function Ranking() {
       const counters: Record<number, number> = { 10: 0, 7: 0, 5: 0, 3: 0, 0: 0 };
       let totalPointsCalculated = 0;
 
-      // Calcula os pontos baseando-se estritamente nas partidas da fase selecionada
       finishedMatches.forEach(match => {
         const pred = predMap[match.id];
         if (pred && pred.points !== null && pred.points !== undefined) {
@@ -119,7 +109,6 @@ export default function Ranking() {
         }
       });
 
-      // Calcula a maior pontuação obtida em uma única rodada/sub-etapa dentro do escopo filtrado
       const rounds = Array.from(new Set(filteredMatches.map(m => m.matchday).filter(Boolean)));
       let maxRound = 0;
       rounds.forEach(r => {
@@ -134,34 +123,60 @@ export default function Ranking() {
 
       return {
         ...u,
-        // Se a fase for "Todas", exibe o total global acumulado, caso contrário exibe o recalculado da fase
         totalPoints: selectedPhase === "all" ? (u.total_points || totalPointsCalculated) : totalPointsCalculated,
         counters,
         maxRound,
         predCount: userPreds.length,
       };
-    }).sort((a, b) => b.totalPoints - a.totalPoints); // Reclassifica do 1° ao último colocado
+    }).sort((a, b) => b.totalPoints - a.totalPoints);
   }, [allUsers, allPredictions, finishedMatches, selectedPhase, filteredMatches]);
 
-  // Filtro avançado por acertos específicos de pontuação (10, 7, 5, etc)
   const displayedRanked = useMemo(() => {
     if (filterPoints === null) return ranked;
     return ranked.filter(u => (u.counters[filterPoints] || 0) > 0);
   }, [ranked, filterPoints]);
 
-  // Estatísticas Máximas Dinâmicas
   const maxPhasePoints = ranked.length > 0 ? Math.max(...ranked.map(u => u.totalPoints)) : 0;
   const maxRoundPoints = ranked.length > 0 ? Math.max(...ranked.map(u => u.maxRound)) : 0;
+  const topScorer = ranked.length > 0 && ranked[0].totalPoints > 0 ? ranked[0] : null;
 
   return (
     <div className="max-w-4xl mx-auto space-y-5 pb-10 mt-6">
       {/* Cabeçalho */}
       <div className="flex items-center gap-3">
         <span className="text-[22px]">🏆</span>
-        <h1 className="text-[22px] font-bold text-[#e5e2e1]">Ranking Geral</h1>
+        <h1 className="text-[22px] font-bold text-[#e5e2e1]">
+          {selectedPhase === "all" ? "Ranking Geral" : "Ranking da Rodada"}
+        </h1>
       </div>
 
-      {/* Painel de Estatísticas Máximas Dinâmicas */}
+      {/* BANNER DE PREMIAÇÃO DA RODADA */}
+      {selectedPhase !== "all" && (
+        <div className="p-4 rounded-xl border border-white/5 bg-[#111] flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in zoom-in-95">
+          <div>
+            <h4 className="text-[14px] font-bold text-[#e5e2e1]">
+              Status: {WORLD_CUP_PHASES.find(f => f.id === selectedPhase)?.label}
+            </h4>
+            <p className="text-[12px] text-[#8a9a8e] mt-0.5">
+              {isPhaseFinished 
+                ? "✅ Partidas encerradas! Resultado oficial da fase." 
+                : "⏳ Jogos em andamento ou aguardando início."}
+            </p>
+          </div>
+
+          {isPhaseFinished && topScorer && (
+            <div className="flex items-center gap-3 bg-[#4edea3]/10 border border-[#4edea3]/20 px-4 py-2 rounded-lg">
+              <span className="material-symbols-rounded text-[#4edea3] text-[24px]">emoji_events</span>
+              <div>
+                <span className="text-[10px] text-[#4edea3] font-bold uppercase tracking-wider block">Maior Pontuador</span>
+                <span className="text-[14px] font-black text-white">{topScorer.name} <span className="text-[#8a9a8e] font-medium text-[12px]">({topScorer.totalPoints} pts)</span></span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Painel de Estatísticas */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl border border-white/5 p-4" style={{ background: "#181818" }}>
           <p className="text-[11px] text-[#8a9a8e] mb-1">
@@ -172,16 +187,16 @@ export default function Ranking() {
           </p>
         </div>
         <div className="rounded-xl border border-white/5 p-4" style={{ background: "#181818" }}>
-          <p className="text-[11px] text-[#8a9a8e] mb-1">Maior pontuação em uma rodada</p>
+          <p className="text-[11px] text-[#8a9a8e] mb-1">Maior pontuação em um único dia</p>
           <p className="text-[24px] font-black text-[#ffb95f]">
             {maxRoundPoints} <span className="text-[13px] font-normal text-[#8a9a8e]">pts</span>
           </p>
         </div>
       </div>
 
-      {/* Seletores e Filtros Avançados */}
+      {/* Filtros Avançados */}
       <div className="flex flex-col gap-3">
-        {/* Filtro por Fase / Rodada da Competição */}
+        {/* Filtro por Fase da Competição */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[11px] text-[#8a9a8e] font-semibold mr-1">Fase:</span>
           <button
@@ -194,17 +209,17 @@ export default function Ranking() {
           >
             Todas
           </button>
-          {phasesInData.map(phase => (
+          {WORLD_CUP_PHASES.map(phase => (
             <button
-              key={phase}
-              onClick={() => setSelectedPhase(phase)}
+              key={phase.id}
+              onClick={() => setSelectedPhase(phase.id)}
               className="px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-colors"
-              style={selectedPhase === phase
+              style={selectedPhase === phase.id
                 ? { background: "rgba(78,222,163,0.2)", color: "#4edea3", border: "1px solid rgba(78,222,163,0.4)" }
                 : { background: "#1a1a1a", color: "#8a9a8e", border: "1px solid rgba(255,255,255,0.06)" }
               }
             >
-              {STAGE_MAP[phase] || phase}
+              {phase.label}
             </button>
           ))}
         </div>
