@@ -192,9 +192,16 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser 
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-[#8a9a8e] uppercase tracking-wider">Palpite:</span>
                     {pred && pred.home_score != null && pred.away_score != null ? (
-                      <span className="text-[13px] font-bold text-[#e5e2e1] bg-[#111] px-2 py-0.5 rounded border border-white/10">
-                        {pred.home_score} x {pred.away_score}
-                      </span>
+                      showPrediction ? (
+                        <span className="text-[13px] font-bold text-[#e5e2e1] bg-[#111] px-2 py-0.5 rounded border border-white/10">
+                          {pred.home_score} x {pred.away_score}
+                        </span>
+                      ) : (
+                        <div className="flex items-center gap-1 bg-[#4edea3]/10 px-2 py-0.5 rounded border border-[#4edea3]/20">
+                          <span className="material-symbols-rounded text-[12px] text-[#4edea3]">lock</span>
+                          <span className="text-[10px] font-bold text-[#4edea3] uppercase tracking-wider">Oculto</span>
+                        </div>
+                      )
                     ) : (
                       <span className="text-[10px] font-semibold text-[#ff6464] bg-[#ff6464]/10 px-2 py-0.5 rounded border border-[#ff6464]/20">Sem palpite</span>
                     )}
