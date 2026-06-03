@@ -51,16 +51,23 @@ export default function PredictionsModal({ isOpen, onClose, match }: any) {
           if (hist) historyData = hist;
         }
 
-        // 3. Formata os membros para exibição
+       // 3. Formata os membros para exibição
         const membersList = (predictionsData || []).map(p => {
-          const hasValidScore = p.home_score != null && p.away_score != null;
-          
+          // Extrai o valor interceptando possíveis variações (ex: string vs int vs nome camelCase)
+          let hScore = p.home_score !== undefined ? p.home_score : p.homeScore;
+          let aScore = p.away_score !== undefined ? p.away_score : p.awayScore;
+
+          // Confirmação blindada: só diz que "não palpitou" se for literalmente nulo, undefined ou string vazia
+          const hasValidScore = 
+            hScore !== null && hScore !== undefined && hScore !== "" &&
+            aScore !== null && aScore !== undefined && aScore !== "";
+
           return {
             id: p.user_id,
             name: p.user_id === user?.id ? "Você" : (p.profiles?.name || "Usuário"),
             avatar: p.profiles?.avatar_url,
             isMe: p.user_id === user?.id,
-            prediction: hasValidScore ? { home_score: p.home_score, away_score: p.away_score } : null
+            prediction: hasValidScore ? { home_score: hScore, away_score: aScore } : null
           };
         });
 
