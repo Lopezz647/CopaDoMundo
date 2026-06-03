@@ -73,11 +73,19 @@ function MemberDetailModal({ member, matches, predictions, onClose }: any) {
   const predMap: Record<string, any> = {};
   memberPredictions.forEach((p: any) => { predMap[p.match_id] = p; });
 
-  const totals: Record<number, number> = { 10: 0, 7: 0, 5: 0, 3: 0, 0: 0 };
+const totals: Record<number, number> = { 10: 0, 7: 0, 5: 0, 3: 0, 0: 0 };
   let totalPoints = 0;
 
-  // Processa todos os jogos do dia atual
-  const matchDetails = matches.map((match: any) => {
+  // 1. FILTRO: Pega a data de hoje e exibe apenas os jogos do dia
+  const todayStr = new Date().toDateString();
+  const dayMatches = matches.filter((m: any) => {
+    const matchDate = m.utcDate || m.date || m.match_date;
+    if (!matchDate) return false;
+    return new Date(matchDate).toDateString() === todayStr;
+  });
+
+  // Processa apenas os jogos filtrados do dia
+  const matchDetails = dayMatches.map((match: any) => {
     const pred = predMap[match.id];
     let scored = null;
     
@@ -85,7 +93,6 @@ function MemberDetailModal({ member, matches, predictions, onClose }: any) {
     const officialAway = match.score?.fullTime?.away ?? match.score?.regularTime?.away;
     const hasOfficialScore = officialHome != null && officialAway != null;
     
-    // Se o jogo tem placar e o usuário palpitou, calcula a regra!
     if (hasOfficialScore && pred && pred.home_score != null && pred.away_score != null) {
       scored = getMatchPoints(officialHome, officialAway, pred.home_score, pred.away_score);
       totals[scored.pts] += 1;
@@ -97,7 +104,6 @@ function MemberDetailModal({ member, matches, predictions, onClose }: any) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Fundo Escuro Blur (Fecha ao clicar fora) */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onClick={onClose} />
       
       <div
@@ -119,7 +125,7 @@ function MemberDetailModal({ member, matches, predictions, onClose }: any) {
             </div>
             <div>
               <h3 className="text-[16px] font-bold text-[#e5e2e1]">{member.name}</h3>
-              <span className="text-[11px] text-[#8a9a8e] font-medium">Detalhes das partidas do dia</span>
+              <span className="text-[11px] text-[#8a9a8e] font-medium">Detalhes das partidas de hoje</span>
             </div>
           </div>
           <button onClick={onClose} className="text-[#8a9a8e] bg-white/5 hover:bg-white/10 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
@@ -146,10 +152,10 @@ function MemberDetailModal({ member, matches, predictions, onClose }: any) {
           </div>
         </div>
 
-        {/* Lista de Partidas do Dia */}
-        <div className="overflow-y-auto divide-y divide-white/5 custom-scrollbar">
+        {/* 2. SCROLL INVISÍVEL: Classes Tailwind idênticas ao DateNavigator */}
+        <div className="overflow-y-auto divide-y divide-white/5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {matchDetails.length === 0 ? (
-            <div className="py-12 text-center text-[#8a9a8e] text-[13px]">Nenhum jogo disponível nesta data.</div>
+            <div className="py-12 text-center text-[#8a9a8e] text-[13px]">Nenhum jogo disponível hoje.</div>
           ) : (
             matchDetails.map(({ match, pred, scored, hasOfficialScore, officialHome, officialAway }, idx) => (
               <div key={idx} className="px-5 py-4 hover:bg-white/5 transition-colors">
