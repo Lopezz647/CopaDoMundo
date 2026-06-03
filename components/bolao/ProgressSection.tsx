@@ -1,6 +1,13 @@
 import React from "react";
 
-export default function ProgressSection({ made, total, multiplier }) {
+// Adicionamos a interface para o TypeScript saber o que entra no componente
+interface ProgressSectionProps {
+  made: number;
+  total: number;
+  multiplier?: number; // Opcional, caso você use depois
+}
+
+export default function ProgressSection({ made, total, multiplier }: ProgressSectionProps) {
   const pct = total > 0 ? Math.round((made / total) * 100) : 0;
 
   return (
@@ -25,7 +32,6 @@ export default function ProgressSection({ made, total, multiplier }) {
           }}
         />
       </div>
-     
     </div>
   );
 }
