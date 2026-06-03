@@ -15,16 +15,16 @@ export async function GET() {
   }
 );
 
-if (!respostaApi.ok) {
-  const errorText = await respostaApi.text();
+if (!res.ok) {
+  const errorText = await res.text();
 
   console.error(
-    `❌ ERRO FOOTBALL-DATA (Status ${respostaApi.status}):`,
+    `❌ ERRO FOOTBALL-DATA (Status ${res.status}):`,
     errorText
   );
 
   throw new Error(
-    `Falha na API: Status ${respostaApi.status}`
+    `Falha na API: Status ${res.status}`
   );
 }
 
