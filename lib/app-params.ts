@@ -22,7 +22,12 @@ const getAppParamValue = (
 		window.history.replaceState({}, document.title, newUrl);
 	}
 	if (searchParam) {
-		storage.setItem(storageKey, searchParam);
+		if ('setItem' in storage && typeof storage.setItem === 'function') {
+			storage.setItem(storageKey, searchParam);
+		}		else {
+			(storage as Map<any, any>).set(storageKey, searchParam);
+		}
+		
 		return searchParam;
 	}
 	if (defaultValue) {
