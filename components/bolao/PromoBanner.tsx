@@ -17,10 +17,7 @@ export default function PromoBanner() {
               boxShadow: "0 0 20px rgba(78,222,163,0.1)" 
             }}
           >
-            <div
-  className="w-[72px] h-[72px] rounded-full overflow-hidden flex items-center justify-center"
->
-  <img
+      <img
     src="/logo-copa.png"
     alt="Troféu Copa do Mundo"
     className="w-full h-full object-cover"
