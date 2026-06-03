@@ -12,7 +12,7 @@ export default function DateNavigator({ currentRound, onRoundChange, selectedDat
   const scrollContainerRef = useRef(null);
 
   const roundTitle = currentRound <= MAX_GROUP_ROUNDS 
-    ? `Fase de Grupos - ${currentRound}` 
+    ? `Rodada - ${currentRound}` 
     : "Playoffs";
 
   // Lógica de Auto-Scroll: Executa sempre que a data selecionada mudar
