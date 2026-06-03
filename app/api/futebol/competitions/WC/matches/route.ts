@@ -3,32 +3,34 @@ import { NextResponse } from 'next/server'
 
 
 export async function GET() {
-  const API_KEY = process.env.NEXT_PUBLIC_API_TOKEN
-  
-  const res = await fetch(
-  "https://api.football-data.org/v4/competitions/WC/matches",
-  {
-    headers: {
-      "X-Auth-Token": API_KEY ?? "",
-    },
-    next: { revalidate: 30 },
+  if (!API_KEY) {
+    return NextResponse.json(
+      { error: 'Token não configurado' },
+      { status: 500 }
+    )
   }
-);
 
-if (!res.ok) {
-  const errorText = await res.text();
+  try {
+    const res = await fetch(
+      'https://api.football-data.org/v4/competitions/WC/matches',
+      {
+        headers: {
+          'X-Auth-Token': API_KEY,
+        },
+        next: { revalidate: 30 },
+      }
+    )
 
-  console.error(
-    `❌ ERRO FOOTBALL-DATA (Status ${res.status}):`,
-    errorText
-  );
+    if (!res.ok) {
+      const errorText = await res.text()
 
-  throw new Error(
-    `Falha na API: Status ${res.status}`
-  );
-}
+      console.error(
+        `❌ ERRO FOOTBALL-DATA (Status ${res.status}):`,
+        errorText
+      )
 
-
+      throw new Error(`Falha na API: Status ${res.status}`)
+    }
     const data = await res.json()
     // --- INÍCIO DO MOCK (MÁQUINA DO TEMPO) ---
     const minutosAdicionais = -10; 
