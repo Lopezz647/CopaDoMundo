@@ -10,14 +10,17 @@ export default function PromoBanner() {
         <div className="flex items-center gap-5">
           {/* FIFA-style trophy circle */}
           <div
-            className="w-[72px] h-[72px] rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden relative"
-            style={{ background: "radial-gradient(circle, #1e3d2e 0%, #0d1f16 100%)", border: "2px solid rgba(78,222,163,0.25)", boxShadow: "0 0 20px rgba(78,222,163,0.1)" }}
+            className="w-[72px] h-[72px] rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ 
+              background: "radial-gradient(circle, #1e3d2e 0%, #0d1f16 100%)", 
+              border: "2px solid rgba(78,222,163,0.25)", 
+              boxShadow: "0 0 20px rgba(78,222,163,0.1)" 
+            }}
           >
             <img 
-              // Link temporário do troféu da Copa. Você pode mudar para algo como "/logo-copa.png" se tiver salvo na pasta "public" do seu projeto
               src="/logo-copa.png" 
               alt="Troféu Copa do Mundo" 
-              className="w-[70%] h-[70%] object-contain drop-shadow-[0_0_10px_rgba(255,215,0,0.3)] transition-transform hover:scale-110"
+              className="w-[48px] h-[48px] object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-transform hover:scale-110"
             />
           </div>
 
