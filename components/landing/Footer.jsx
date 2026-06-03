@@ -1,4 +1,4 @@
-export default function Footer({ logoUrl }) {
+export default function Footer({ logoUrl = "/logo-principal.png" }) {
   return (
     <footer className="border-t border-primary/20 bg-background py-12">
       <div className="max-w-7xl mx-auto px-4">
