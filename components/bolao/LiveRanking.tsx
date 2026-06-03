@@ -68,15 +68,15 @@ function PointsBadge({ points }: { points: number }) {
 // ==========================================
 // COMPONENTE DO MODAL: DETALHES DO MEMBRO
 // ==========================================
-function MemberDetailModal({ member, matches, predictions, onClose }: any) {
+// 1. Receba o currentUser nas props do modal
+function MemberDetailModal({ member, matches, predictions, onClose, currentUser }: any) {
   const memberPredictions = predictions.filter((p: any) => p.user_id === member.id);
   const predMap: Record<string, any> = {};
   memberPredictions.forEach((p: any) => { predMap[p.match_id] = p; });
 
-const totals: Record<number, number> = { 10: 0, 7: 0, 5: 0, 3: 0, 0: 0 };
+  const totals: Record<number, number> = { 10: 0, 7: 0, 5: 0, 3: 0, 0: 0 };
   let totalPoints = 0;
 
-  // 1. FILTRO: Pega a data de hoje e exibe apenas os jogos do dia
   const todayStr = new Date().toDateString();
   const dayMatches = matches.filter((m: any) => {
     const matchDate = m.utcDate || m.date || m.match_date;
@@ -84,7 +84,6 @@ const totals: Record<number, number> = { 10: 0, 7: 0, 5: 0, 3: 0, 0: 0 };
     return new Date(matchDate).toDateString() === todayStr;
   });
 
-  // Processa apenas os jogos filtrados do dia
   const matchDetails = dayMatches.map((match: any) => {
     const pred = predMap[match.id];
     let scored = null;
@@ -99,7 +98,12 @@ const totals: Record<number, number> = { 10: 0, 7: 0, 5: 0, 3: 0, 0: 0 };
       totalPoints += scored.pts;
     }
 
-    return { match, pred, scored, hasOfficialScore, officialHome, officialAway };
+    // REGRA DE VISIBILIDADE DO LIVE RANKING
+    const status = match.status?.toUpperCase() || "TIMED";
+    const isMatchStarted = ["IN_PLAY", "PAUSED", "LIVE", "HT", "1H", "2H", "ET", "PEN", "FINISHED"].includes(status);
+    const showPrediction = isMatchStarted || currentUser?.id === member.id;
+
+    return { match, pred, scored, hasOfficialScore, officialHome, officialAway, showPrediction };
   });
 
   return (
@@ -320,6 +324,7 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
       {selectedMember && (
         <MemberDetailModal 
           member={selectedMember} 
+          currentUser={user} /* <--- ADICIONE ESTA LINHA */
           matches={liveMatches} 
           predictions={predictions} 
           onClose={() => setSelectedMember(null)} 
