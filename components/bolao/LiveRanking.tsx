@@ -43,11 +43,12 @@ function getMatchPoints(officialHome: number, officialAway: number, predHome: nu
   // 5. Nada (0 pts)
   return { pts: 0, text: "Errou totalmente" };
 }
+
 // ==========================================
 // COMPONENTE VISUAL: BADGE DE PONTOS
 // ==========================================
 function PointsBadge({ points }: { points: number }) {
-  const colors: Record<number, any> = {
+  const colors: Record<number, { bg: string; color: string; border: string }> = {
     10: { bg: "rgba(78,222,163,0.18)", color: "#4edea3", border: "rgba(78,222,163,0.35)" },
     7:  { bg: "rgba(100,160,255,0.18)", color: "#64a0ff", border: "rgba(100,160,255,0.35)" },
     5:  { bg: "rgba(255,185,95,0.18)", color: "#ffb95f", border: "rgba(255,185,95,0.35)" },
@@ -66,30 +67,93 @@ function PointsBadge({ points }: { points: number }) {
 }
 
 // ==========================================
+// TIPAGENS COMPARTILHADAS
+// ==========================================
+interface User {
+  id: string;
+  email?: string;
+  name?: string;
+  full_name?: string;
+  avatar_url?: string;
+  total_points?: number;
+}
+
+interface MatchTeam {
+  name: string;
+  crest?: string;
+}
+
+interface MatchScore {
+  fullTime?: { home: number | null; away: number | null };
+  regularTime?: { home: number | null; away: number | null };
+}
+
+interface Match {
+  id: string | number;
+  utcDate?: string;
+  date?: string;
+  match_date?: string;
+  status?: string;
+  score?: MatchScore;
+  homeTeam?: MatchTeam;
+  awayTeam?: MatchTeam;
+  home_team?: string;
+  away_team?: string;
+  home_flag?: string;
+  away_flag?: string;
+}
+
+interface Prediction {
+  id?: string;
+  user_id: string;
+  match_id: string | number;
+  home_score: number | null;
+  away_score: number | null;
+  points?: number;
+}
+
+// ==========================================
 // COMPONENTE DO MODAL: DETALHES DO MEMBRO
 // ==========================================
-// 1. Receba o currentUser nas props do modal
-function MemberDetailModal({ member, matches, predictions, onClose, currentUser }: any) {
-  const memberPredictions = predictions.filter((p: any) => p.user_id === member.id);
-  const predMap: Record<string, any> = {};
-  memberPredictions.forEach((p: any) => { predMap[p.match_id] = p; });
+interface MemberDetailModalProps {
+  member: User & { points?: number };
+  matches: Match[];
+  predictions: Prediction[];
+  onClose: () => void;
+  currentUser: User | null;
+}
+
+interface MatchDetailItem {
+  match: Match;
+  pred: Prediction | undefined;
+  scored: { pts: number; text: string } | null;
+  hasOfficialScore: boolean;
+  officialHome: number | null;
+  officialAway: number | null;
+  showPrediction: boolean;
+}
+
+function MemberDetailModal({ member, matches, predictions, onClose, currentUser }: MemberDetailModalProps) {
+  const memberPredictions = predictions.filter((p) => p.user_id === member.id);
+  const predMap: Record<string, Prediction> = {};
+  memberPredictions.forEach((p) => { predMap[String(p.match_id)] = p; });
 
   const totals: Record<number, number> = { 10: 0, 7: 0, 5: 0, 3: 0, 0: 0 };
   let totalPoints = 0;
 
   const todayStr = new Date().toDateString();
-  const dayMatches = matches.filter((m: any) => {
+  const dayMatches = matches.filter((m) => {
     const matchDate = m.utcDate || m.date || m.match_date;
     if (!matchDate) return false;
     return new Date(matchDate).toDateString() === todayStr;
   });
 
-  const matchDetails = dayMatches.map((match: any) => {
-    const pred = predMap[match.id];
+  const matchDetails: MatchDetailItem[] = dayMatches.map((match) => {
+    const pred = predMap[String(match.id)];
     let scored = null;
     
-    const officialHome = match.score?.fullTime?.home ?? match.score?.regularTime?.home;
-    const officialAway = match.score?.fullTime?.away ?? match.score?.regularTime?.away;
+    const officialHome = match.score?.fullTime?.home ?? match.score?.regularTime?.home ?? null;
+    const officialAway = match.score?.fullTime?.away ?? match.score?.regularTime?.away ?? null;
     const hasOfficialScore = officialHome != null && officialAway != null;
     
     if (hasOfficialScore && pred && pred.home_score != null && pred.away_score != null) {
@@ -148,7 +212,7 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser 
             {[10, 7, 5, 3, 0].map(p => (
               totals[p] > 0 ? (
                 <div key={p} className="flex items-center gap-1 bg-white/5 rounded-full px-2 py-0.5 border border-white/5">
-                  <span className="text-[11px] font-black" style={{ color: { 10: "#4edea3", 7: "#64a0ff", 5: "#ffb95f", 3: "#b482ff", 0: "#ff6464" }[p] }}>{p}pts</span>
+                  <span className="text-[11px] font-black" style={{ color: ({ 10: "#4edea3", 7: "#64a0ff", 5: "#ffb95f", 3: "#b482ff", 0: "#ff6464" } as Record<number, string>)[p] }}>{p}pts</span>
                   <span className="text-[10px] text-[#8a9a8e] font-bold">×{totals[p]}</span>
                 </div>
               ) : null
@@ -156,72 +220,77 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser 
           </div>
         </div>
 
-        {/* 2. SCROLL INVISÍVEL: Classes Tailwind idênticas ao DateNavigator */}
+        {/* 2. SCROLL INVISÍVEL */}
         <div className="overflow-y-auto divide-y divide-white/5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {matchDetails.length === 0 ? (
             <div className="py-12 text-center text-[#8a9a8e] text-[13px]">Nenhum jogo disponível hoje.</div>
           ) : (
-            matchDetails.map(({ match, pred, scored, hasOfficialScore, officialHome, officialAway, showPrediction }, idx) => (
-              <div key={idx} className="px-5 py-4 hover:bg-white/5 transition-colors">
-                
-                {/* Linha dos Times vs Placar Oficial */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-[13px] font-semibold text-[#e5e2e1] flex-1">
-                    <span className="text-[18px]">{match.home_flag?.startsWith("http") ? <img src={match.home_flag} className="w-5 h-5 object-contain" /> : (match.home_flag || "🏳️")}</span>
-                    <span className="truncate">{match.homeTeam?.name || match.home_team || "Mandante"}</span>
-                  </div>
+            // AQUI ESTÁ A CORREÇÃO PRINCIPAL QUE TRAVAVA O BUILD
+            matchDetails.map((item: MatchDetailItem, idx: number) => {
+              const { match, pred, scored, hasOfficialScore, officialHome, officialAway, showPrediction } = item;
+              
+              return (
+                <div key={idx} className="px-5 py-4 hover:bg-white/5 transition-colors">
                   
-                  <div className="flex items-center justify-center min-w-[70px] bg-black/40 px-3 py-1 rounded-lg border border-white/5">
-                    {hasOfficialScore ? (
-                      <span className="text-[15px] font-black text-white">
-                        {officialHome} <span className="text-[#8a9a8e] text-[12px] font-medium mx-1">x</span> {officialAway}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-bold text-[#8a9a8e] uppercase tracking-wider">Aguardando</span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-end gap-2 text-[13px] font-semibold text-[#e5e2e1] flex-1">
-                    <span className="truncate text-right">{match.awayTeam?.name || match.away_team || "Visitante"}</span>
-                    <span className="text-[18px]">{match.away_flag?.startsWith("http") ? <img src={match.away_flag} className="w-5 h-5 object-contain" /> : (match.away_flag || "🏳️")}</span>
-                  </div>
-                </div>
-
-                {/* Linha do Palpite e Avaliação */}
-                <div className="flex items-center justify-between mt-2 bg-black/20 p-2.5 rounded-xl border border-white/5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-[#8a9a8e] uppercase tracking-wider">Palpite:</span>
-                    {pred && pred.home_score != null && pred.away_score != null ? (
-                      showPrediction ? (
-                        <span className="text-[13px] font-bold text-[#e5e2e1] bg-[#111] px-2 py-0.5 rounded border border-white/10">
-                          {pred.home_score} x {pred.away_score}
+                  {/* Linha dos Times vs Placar Oficial */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-[13px] font-semibold text-[#e5e2e1] flex-1">
+                      <span className="text-[18px]">{match.home_flag?.startsWith("http") ? <img src={match.home_flag} className="w-5 h-5 object-contain" /> : (match.home_flag || "🏳️")}</span>
+                      <span className="truncate">{match.homeTeam?.name || match.home_team || "Mandante"}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-center min-w-[70px] bg-black/40 px-3 py-1 rounded-lg border border-white/5">
+                      {hasOfficialScore ? (
+                        <span className="text-[15px] font-black text-white">
+                          {officialHome} <span className="text-[#8a9a8e] text-[12px] font-medium mx-1">x</span> {officialAway}
                         </span>
                       ) : (
-                        <div className="flex items-center gap-1 bg-[#4edea3]/10 px-2 py-0.5 rounded border border-[#4edea3]/20">
-                          <span className="material-symbols-rounded text-[12px] text-[#4edea3]">lock</span>
-                          <span className="text-[10px] font-bold text-[#4edea3] uppercase tracking-wider">Oculto</span>
-                        </div>
-                      )
-                    ) : (
-                      <span className="text-[10px] font-semibold text-[#ff6464] bg-[#ff6464]/10 px-2 py-0.5 rounded border border-[#ff6464]/20">Sem palpite</span>
-                    )}
+                        <span className="text-[10px] font-bold text-[#8a9a8e] uppercase tracking-wider">Aguardando</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 text-[13px] font-semibold text-[#e5e2e1] flex-1">
+                      <span className="truncate text-right">{match.awayTeam?.name || match.away_team || "Visitante"}</span>
+                      <span className="text-[18px]">{match.away_flag?.startsWith("http") ? <img src={match.away_flag} className="w-5 h-5 object-contain" /> : (match.away_flag || "🏳️")}</span>
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {scored ? (
-                      <>
-                        <span className="text-[10px] font-semibold text-[#8a9a8e] text-right leading-tight tracking-wide hidden sm:block truncate max-w-[150px]">
-                          {scored.text}
-                        </span>
-                        <PointsBadge points={scored.pts} />
-                      </>
-                    ) : (
-                      <span className="text-[11px] font-medium text-[#8a9a8e] italic">—</span>
-                    )}
+
+                  {/* Linha do Palpite e Avaliação */}
+                  <div className="flex items-center justify-between mt-2 bg-black/20 p-2.5 rounded-xl border border-white/5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-[#8a9a8e] uppercase tracking-wider">Palpite:</span>
+                      {pred && pred.home_score != null && pred.away_score != null ? (
+                        showPrediction ? (
+                          <span className="text-[13px] font-bold text-[#e5e2e1] bg-[#111] px-2 py-0.5 rounded border border-white/10">
+                            {pred.home_score} x {pred.away_score}
+                          </span>
+                        ) : (
+                          <div className="flex items-center gap-1 bg-[#4edea3]/10 px-2 py-0.5 rounded border border-[#4edea3]/20">
+                            <span className="material-symbols-rounded text-[12px] text-[#4edea3]">lock</span>
+                            <span className="text-[10px] font-bold text-[#4edea3] uppercase tracking-wider">Oculto</span>
+                          </div>
+                        )
+                      ) : (
+                        <span className="text-[10px] font-semibold text-[#ff6464] bg-[#ff6464]/10 px-2 py-0.5 rounded border border-[#ff6464]/20">Sem palpite</span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {scored ? (
+                        <>
+                          <span className="text-[10px] font-semibold text-[#8a9a8e] text-right leading-tight tracking-wide hidden sm:block truncate max-w-[150px]">
+                            {scored.text}
+                          </span>
+                          <PointsBadge points={scored.pts} />
+                        </>
+                      ) : (
+                        <span className="text-[11px] font-medium text-[#8a9a8e] italic">—</span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -232,17 +301,24 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser 
 // ==========================================
 // COMPONENTE PRINCIPAL: RANKING AO VIVO
 // ==========================================
-export default function LiveRanking({ user, predictions, liveMatches, dbRanking }: any) {
-  const [selectedMember, setSelectedMember] = useState<any>(null);
+interface LiveRankingProps {
+  user: User;
+  predictions: Prediction[];
+  liveMatches: Match[];
+  dbRanking: User[];
+}
+
+export default function LiveRanking({ user, predictions, liveMatches, dbRanking }: LiveRankingProps) {
+  const [selectedMember, setSelectedMember] = useState<(User & { points?: number }) | null>(null);
 
   const liveLeaderboard = useMemo(() => {
     if (!predictions || !liveMatches) return [];
 
-    const rankingMap: Record<string, any> = {};
+    const rankingMap: Record<string, User & { points: number }> = {};
 
     // 1. Preenche o ranking inicial com os dados consolidados do Supabase
     if (dbRanking) {
-      dbRanking.forEach((u: any) => {
+      dbRanking.forEach((u) => {
         rankingMap[u.id] = {
           id: u.id,
           name: u.full_name || u.name || "Competidor",
@@ -253,12 +329,12 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
     }
 
     // 2. Calcula pontos em tempo real dos jogos exibidos na tela
-    predictions.forEach((p: any) => {
-      const match = liveMatches.find((m: any) => String(m.id) === String(p.match_id));
+    predictions.forEach((p) => {
+      const match = liveMatches.find((m) => String(m.id) === String(p.match_id));
 
       if (match && (match.status === "IN_PLAY" || match.status === "FINISHED" || match.status === "PAUSED")) {
-        const officialHome = match.score?.fullTime?.home ?? match.score?.regularTime?.home;
-        const officialAway = match.score?.fullTime?.away ?? match.score?.regularTime?.away;
+        const officialHome = match.score?.fullTime?.home ?? match.score?.regularTime?.home ?? null;
+        const officialAway = match.score?.fullTime?.away ?? match.score?.regularTime?.away ?? null;
         
         let calculatedPoints = 0;
         if (officialHome != null && officialAway != null && p.home_score != null && p.away_score != null) {
@@ -279,7 +355,7 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
     });
 
     // 3. Ordena do 1º colocado ao último
-    return Object.values(rankingMap).sort((a: any, b: any) => b.points - a.points);
+    return Object.values(rankingMap).sort((a, b) => b.points - a.points);
   }, [dbRanking, predictions, liveMatches]);
 
   return (
@@ -331,7 +407,7 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
       {selectedMember && (
         <MemberDetailModal 
           member={selectedMember} 
-          currentUser={user} /* <--- ADICIONE ESTA LINHA */
+          currentUser={user}
           matches={liveMatches} 
           predictions={predictions} 
           onClose={() => setSelectedMember(null)} 
@@ -340,3 +416,4 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
     </>
   );
 }
+
