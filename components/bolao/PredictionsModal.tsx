@@ -23,20 +23,21 @@ export default function PredictionsModal({ isOpen, onClose, match }: any) {
   useEffect(() => {
     if (!isOpen) return;
 
-    async function fetchRealData() {
+   async function fetchRealData() {
       setLoading(true);
       
       try {
         const { data: { user } } = await supabase.auth.getUser();
 
         // 1. Busca os palpites e junta com os dados de Perfil (Nome e Avatar)
+        // Correção: Removido o String() para preservar a tipagem nativa do match.id (Número ou UUID)
         const { data: predictionsData } = await supabase
           .from("predictions")
           .select(`
             *,
             profiles ( name, avatar_url )
           `)
-          .eq("match_id", String(match.id));
+          .eq("match_id", match.id); 
 
         // 2. Busca o histórico de alterações (apenas do usuário logado)
         let historyData: any[] = [];
@@ -44,7 +45,7 @@ export default function PredictionsModal({ isOpen, onClose, match }: any) {
           const { data: hist } = await supabase
             .from("prediction_history")
             .select("*")
-            .eq("match_id", String(match.id))
+            .eq("match_id", match.id) // Tipagem corrigida aqui também
             .eq("user_id", user.id)
             .order("changed_at", { ascending: false });
             
@@ -53,14 +54,12 @@ export default function PredictionsModal({ isOpen, onClose, match }: any) {
 
        // 3. Formata os membros para exibição
         const membersList = (predictionsData || []).map(p => {
-          // Extrai o valor interceptando possíveis variações (ex: string vs int vs nome camelCase)
-          let hScore = p.home_score !== undefined ? p.home_score : p.homeScore;
-          let aScore = p.away_score !== undefined ? p.away_score : p.awayScore;
+          // Coleta blindada: procura o placar em todas as chaves possíveis que a API/Banco possa estar entregando
+          const hScore = p.home_score ?? p.homeScore ?? p.score_home ?? p.home_goals;
+          const aScore = p.away_score ?? p.awayScore ?? p.score_away ?? p.away_goals;
 
-          // Confirmação blindada: só diz que "não palpitou" se for literalmente nulo, undefined ou string vazia
-          const hasValidScore = 
-            hScore !== null && hScore !== undefined && hScore !== "" &&
-            aScore !== null && aScore !== undefined && aScore !== "";
+          // Validação robusta que aceita o número 0 corretamente, mas recusa nulos ou vazios
+          const hasValidScore = hScore != null && hScore !== "" && aScore != null && aScore !== "";
 
           return {
             id: p.user_id,
