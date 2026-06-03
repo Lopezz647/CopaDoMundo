@@ -2,7 +2,14 @@ import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui-dashboard/badge";
 
-export default function RoundNavigation({ currentRound, onRoundChange }) {
+// 1. Criamos a interface para as propriedades
+interface RoundNavigationProps {
+  currentRound: number;
+  onRoundChange: (round: number) => void; // Avisa que é uma função que recebe o número da nova rodada
+}
+
+// 2. Aplicamos a interface ao componente
+export default function RoundNavigation({ currentRound, onRoundChange }: RoundNavigationProps) {
   return (
     <div className="bg-card rounded-xl border border-border p-4 flex items-center justify-between">
       <button
