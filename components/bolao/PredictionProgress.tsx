@@ -1,7 +1,15 @@
 import React from "react";
 import { Progress } from "@/components/ui-dashboard/progress";
 
-export default function PredictionProgress({ made, total, multiplier }) {
+// 1. Criamos a interface para definir os tipos das propriedades
+interface PredictionProgressProps {
+  made: number;
+  total: number;
+  multiplier?: number; // O sinal de interrogação (?) significa que é opcional
+}
+
+// 2. Aplicamos a interface ao componente
+export default function PredictionProgress({ made, total, multiplier }: PredictionProgressProps) {
   const percentage = total > 0 ? Math.round((made / total) * 100) : 0;
 
   return (
