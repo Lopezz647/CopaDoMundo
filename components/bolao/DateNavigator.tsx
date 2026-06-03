@@ -62,7 +62,6 @@ const selectedButton = container.querySelector(`[data-date="${selectedDateStr}"]
               style={{ background: "rgba(255,185,95,0.12)", border: "1px solid rgba(255,185,95,0.25)" }}
             >
               <span className="material-symbols-rounded text-[12px]">local_fire_department</span>
-              2x
             </div>
           )}
         </div>
