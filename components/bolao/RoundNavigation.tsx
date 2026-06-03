@@ -22,9 +22,9 @@ export default function RoundNavigation({ currentRound, onRoundChange }: RoundNa
         <span className="text-base font-bold text-foreground">
           Fase de Grupos - {currentRound}
         </span>
-        <Badge className="bg-accent/20 text-accent border-0 text-xs px-2 py-0.5">
-          🔥 2x
-        </Badge>
+      <Badge variant="default" className="bg-accent/20 text-accent border-0 text-xs px-2 py-0.5">
+  🔥 2x
+</Badge>
       </div>
       <button
         onClick={() => onRoundChange(currentRound + 1)}
