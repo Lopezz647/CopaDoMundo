@@ -7,8 +7,40 @@ const MONTH_NAMES = ["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT"
 const MAX_GROUP_ROUNDS = 3; 
 const MAX_TOTAL_ROUNDS = 7; 
 
-export default function DateNavigator({ currentRound, onRoundChange, selectedDate, onDateChange, dates, predictions, matches }) {
-  const predictionMatchIds = new Set(predictions.map((p: any) => p.match_id));
+// --- NOVAS INTERFACES DE TIPAGEM ---
+export interface Prediction {
+  match_id: string | number;
+}
+
+export interface Match {
+  id: string | number;
+  match_date?: string | Date;
+  utcDate?: string | Date;
+}
+
+interface DateNavigatorProps {
+  currentRound: number;
+  onRoundChange: (round: number) => void;
+  selectedDate: string | Date | null;
+  onDateChange: (date: Date) => void;
+  dates: (string | Date)[];
+  predictions: Prediction[];
+  matches: Match[];
+}
+// -----------------------------------
+
+export default function DateNavigator({ 
+  currentRound, 
+  onRoundChange, 
+  selectedDate, 
+  onDateChange, 
+  dates, 
+  predictions, 
+  matches 
+}: DateNavigatorProps) {
+  
+  // Tipagem aplicada na predição
+  const predictionMatchIds = new Set(predictions.map((p: Prediction) => p.match_id));
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // AJUSTE 2: Função que nomeia a rodada de acordo com o número numérico (1 a 7)
@@ -84,7 +116,8 @@ export default function DateNavigator({ currentRound, onRoundChange, selectedDat
         ref={scrollContainerRef}
         className="flex px-2 py-3 gap-1 w-full custom-scrollbar-dates overflow-x-auto"
       >
-        {dates.map((date: any, idx: number) => {
+        {/* Tipagem aplicada no parâmetro 'date' */}
+        {dates.map((date: string | Date, idx: number) => {
           const d = new Date(date);
           const dateString = d.toDateString(); 
           const dayName = DAY_NAMES[d.getDay()];
@@ -93,9 +126,10 @@ export default function DateNavigator({ currentRound, onRoundChange, selectedDat
           
           const isSelected = selectedDate && new Date(selectedDate).toDateString() === dateString;
 
-          const matchesOnDay = matches.filter((m: any) => new Date(m.match_date || m.utcDate).toDateString() === dateString);
-          const allPredicted = matchesOnDay.length > 0 && matchesOnDay.every((m: any) => predictionMatchIds.has(m.id));
-          const hasPending = matchesOnDay.length > 0 && matchesOnDay.some((m: any) => !predictionMatchIds.has(m.id));
+          // Tipagem aplicada nos parâmetros 'm' das partidas
+          const matchesOnDay = matches.filter((m: Match) => new Date(m.match_date || m.utcDate || "").toDateString() === dateString);
+          const allPredicted = matchesOnDay.length > 0 && matchesOnDay.every((m: Match) => predictionMatchIds.has(m.id));
+          const hasPending = matchesOnDay.length > 0 && matchesOnDay.some((m: Match) => !predictionMatchIds.has(m.id));
 
           const baseButtonClasses = "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg relative min-w-[70px] flex-shrink-0";
 
