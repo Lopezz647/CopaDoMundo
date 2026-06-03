@@ -133,11 +133,14 @@ export default function MatchCard({ match, prediction, onPredictionChange }: Mat
     }
 
     // Validar antes de salvar
-    const validation = validatePrediction(nextHome, nextAway);
-    if (!validation.valid) {
-      console.error('Erro de validação:', validation.errors);
-      return;
-    }
+const validation = validatePrediction(nextHome, nextAway);
+
+// Checa se a propriedade 'errors' existe dentro do objeto retornado
+if ('errors' in validation) {
+  console.error('Erro de validação:', validation.errors);
+  return;
+}
+
 
     setSaveStatus("loading");
     
