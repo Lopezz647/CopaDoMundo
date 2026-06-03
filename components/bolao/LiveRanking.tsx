@@ -161,7 +161,7 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser 
           {matchDetails.length === 0 ? (
             <div className="py-12 text-center text-[#8a9a8e] text-[13px]">Nenhum jogo disponível hoje.</div>
           ) : (
-            matchDetails.map(({ match, pred, scored, hasOfficialScore, officialHome, officialAway }, idx) => (
+            matchDetails.map(({ match, pred, scored, hasOfficialScore, officialHome, officialAway, showPrediction }, idx) => (
               <div key={idx} className="px-5 py-4 hover:bg-white/5 transition-colors">
                 
                 {/* Linha dos Times vs Placar Oficial */}
