@@ -10,21 +10,26 @@ export default function PromoBanner() {
         <div className="flex items-center gap-5">
           {/* FIFA-style trophy circle */}
           <div
-            className="w-[72px] h-[72px] rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
+            className="w-[72px] h-[72px] rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden relative"
             style={{ background: "radial-gradient(circle, #1e3d2e 0%, #0d1f16 100%)", border: "2px solid rgba(78,222,163,0.25)", boxShadow: "0 0 20px rgba(78,222,163,0.1)" }}
           >
-            <span className="text-4xl">🏆</span>
+            <img 
+              // Link temporário do troféu da Copa. Você pode mudar para algo como "/logo-copa.png" se tiver salvo na pasta "public" do seu projeto
+              src="/logo-copa.png" 
+              alt="Troféu Copa do Mundo" 
+              className="w-[70%] h-[70%] object-contain drop-shadow-[0_0_10px_rgba(255,215,0,0.3)] transition-transform hover:scale-110"
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <h1 className="text-[22px] font-bold text-[#e5e2e1] leading-none">Bolão</h1>
+            <h1 className="text-[22px] font-bold text-[#e5e2e1] leading-none">Bolão DRH-1</h1>
             <div className="flex items-center gap-1.5 text-[12px] text-[#4edea3]">
               <span className="material-symbols-rounded text-[13px]">sync</span>
-              <span>Atualizações em até 2 minutos.</span>
+              <span>Atualizações em até 10 minutos.</span>
             </div>
             <div className="flex items-center gap-1.5 text-[12px] text-[#ff6b6b]">
               <span className="material-symbols-rounded text-[13px]">radio_button_checked</span>
-              <span>Palpites até 5min antes do jogo</span>
+              <span>Palpites até 15 min antes do jogo</span>
             </div>
           </div>
         </div>
