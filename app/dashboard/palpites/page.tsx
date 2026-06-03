@@ -27,85 +27,100 @@ export default function Palpites() {
   const [allPredictions, setAllPredictions] = useState<any[]>([]); 
 
   // 1. Carregar os jogos reais da API e os palpites do Supabase
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
+// app/dashboard/palpites/page.tsx (useEffect atualizado)
+
+useEffect(() => {
+  async function loadData() {
+    try {
+      setLoading(true)
+      
+      // Buscar matches da API
+      const response = await fetch("/api/futebol/competitions/WC/matches")
+      const matchData = await response.json()
+
+      const formattedMatches = (matchData.matches || []).map((m: any) => ({
+        id: String(m.id),
+        home_team: m.homeTeam.name,
+        away_team: m.awayTeam.name,
+        home_flag: m.homeTeam.crest || "🏳️",
+        away_flag: m.awayTeam.crest || "🏳️",
+        match_date: m.utcDate,
+        round: m.matchday || 1,
+        status: m.status,
+        score: m.score
+      }))
+
+      setMatches(formattedMatches)
+
+      // Buscar usuário e palpites
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUserId(user.id)
         
-        const response = await fetch("/api/futebol/competitions/WC/matches"); 
-        const matchData = await response.json();
+        const { data: rankingData } = await supabase.from("profiles").select("*")
+        if (rankingData) setDbRanking(rankingData)
 
-        // Mapeia os dados da API para o formato esperado pelos MatchCards
-        const formattedMatches = (matchData.matches || []).map((m: any) => ({
-          id: String(m.id),
-          home_team: m.homeTeam.name,
-          away_team: m.awayTeam.name,
-          home_flag: m.homeTeam.crest || "🏳️",
-          away_flag: m.awayTeam.crest || "🏳️",
-          match_date: m.utcDate,
-          round: m.matchday || 1,
-          status: m.status,
-          score: m.score
-        }));
-
-        setMatches(formattedMatches);
-
-        // Busca o usuário logado e seus palpites salvos
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setUserId(user.id);
-          setUserEmail(user.email || "");
-
-          // 1. Busca o Ranking (A novidade que adicionamos)
-          const { data: rankingData } = await supabase
-            .from("profiles")
-            .select("*");
-          
-          if (rankingData) {
-            setDbRanking(rankingData);
-          }
-
-          // 2. BUSCA OS PALPITES (A linha que tinha sumido!)
-          // BUSCA TODOS OS PALPITES DE TODOS OS MEMBROS (Para o Ranking Ao Vivo)
-          const { data: allPredictionsData } = await supabase
-            .from("predictions")
-            .select("*");
-
-          if (allPredictionsData) {
-            // Mapeia os nomes das colunas de todos os palpites
-            const mappedAll = allPredictionsData.map((p: any) => ({
-              id: p.id,
-              user_id: p.user_id,
-              match_id: p.match_id,
-              home_score: p.score_home, 
-              away_score: p.score_away,
-              points: p.points
-            }));
-
-            // Salva TODOS para enviar ao Ranking
-            setAllPredictions(mappedAll);
-
-            // Filtra APENAS OS SEUS para preencher os botões da sua tela
-            const myPredictions = mappedAll.filter(p => p.user_id === user.id);
-            setPredictions(myPredictions);
-          }
+        const { data: allPredictionsData } = await supabase.from("predictions").select("*")
+        if (allPredictionsData) {
+          const mappedAll = allPredictionsData.map((p: any) => ({
+            id: p.id,
+            user_id: p.user_id,
+            match_id: p.match_id,
+            home_score: p.score_home,
+            away_score: p.score_away,
+            points: p.points
+          }))
+          setAllPredictions(mappedAll)
+          const myPredictions = mappedAll.filter(p => p.user_id === user.id)
+          setPredictions(myPredictions)
         }
-
-        // Define as datas iniciais com base nos primeiros jogos encontrados da API
-        if (formattedMatches.length > 0) {
-          const firstMatchDate = new Date(formattedMatches[0].match_date);
-          setSelectedDate(firstMatchDate);
-          setCurrentRound(formattedMatches[0].round || 1);
-        }
-
-      } catch (error) {
-        console.error("Erro ao inicializar dados do bolão:", error);
-      } finally {
-        setLoading(false);
       }
+
+      if (formattedMatches.length > 0) {
+        const firstMatchDate = new Date(formattedMatches[0].match_date)
+        setSelectedDate(firstMatchDate)
+        setCurrentRound(formattedMatches[0].round || 1)
+      }
+
+    } catch (error) {
+      console.error("Erro ao inicializar dados:", error)
+    } finally {
+      setLoading(false)
     }
-    loadData();
-  }, []);
+  }
+
+  loadData()
+
+  // ✅ NOVO: Polling automático a cada 5 segundos durante partidas
+  const interval = setInterval(async () => {
+    try {
+      const response = await fetch("/api/futebol/competitions/WC/matches")
+      const matchData = await response.json()
+
+      const formattedMatches = (matchData.matches || []).map((m: any) => ({
+        id: String(m.id),
+        home_team: m.homeTeam.name,
+        away_team: m.awayTeam.name,
+        home_flag: m.homeTeam.crest || "🏳️",
+        away_flag: m.awayTeam.crest || "🏳️",
+        match_date: m.utcDate,
+        round: m.matchday || 1,
+        status: m.status,
+        score: m.score
+      }))
+
+      // Só atualiza se houve mudança
+      const hasChanges = JSON.stringify(formattedMatches) !== JSON.stringify(matches)
+      if (hasChanges) {
+        setMatches(formattedMatches)
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar matches:", error)
+    }
+  }, 5000) // A cada 5 segundos
+
+  return () => clearInterval(interval)
+}, []);
 
   // 2. Inteligência de Sincronização Dinâmica
   const allUniqueDates = useMemo(() => {
