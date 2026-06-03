@@ -9,15 +9,15 @@ export default function PromoBanner() {
       <div className="relative p-5 flex items-center justify-between">
         <div className="flex items-center gap-5">
           {/* FIFA-style trophy circle */}
-          <div
-            className="w-[72px] h-[72px] rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ 
-              background: "radial-gradient(circle, #1e3d2e 0%, #0d1f16 100%)", 
-              border: "2px solid rgba(78,222,163,0.25)", 
-              boxShadow: "0 0 20px rgba(78,222,163,0.1)" 
-            }}
-          >
-      <img
+<div
+  className="w-[72px] h-[72px] rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
+  style={{
+    background: "radial-gradient(circle, #1e3d2e 0%, #0d1f16 100%)",
+    border: "2px solid rgba(78,222,163,0.25)",
+    boxShadow: "0 0 20px rgba(78,222,163,0.1)"
+  }}
+>
+  <img
     src="/logo-copa.png"
     alt="Troféu Copa do Mundo"
     className="w-full h-full object-cover"
