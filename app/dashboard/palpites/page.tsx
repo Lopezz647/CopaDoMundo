@@ -32,7 +32,7 @@ export default function Palpites() {
       try {
         setLoading(true);
         
-        const response = await fetch("/api/futebol/competitions/BSA/matches"); 
+        const response = await fetch("/api/futebol/competitions/WC/matches"); 
         const matchData = await response.json();
 
         // Mapeia os dados da API para o formato esperado pelos MatchCards
