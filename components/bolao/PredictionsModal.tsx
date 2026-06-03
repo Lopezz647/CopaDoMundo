@@ -2,13 +2,23 @@ import React, { useState, useEffect } from "react";
 import { X, User, Clock, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-export default function PredictionsModal({ isOpen, onClose, match }) {
+export default function PredictionsModal({ isOpen, onClose, match }: any) {
   const supabase = createClient();
   const [activeTab, setActiveTab] = useState("palpites");
   const [loading, setLoading] = useState(true);
   
   const [allMembers, setAllMembers] = useState<any[]>([]);
   const [history, setHistory] = useState<any[]>([]);
+
+  // ==========================================
+  // STATUS DA PARTIDA E PLACAR OFICIAL
+  // ==========================================
+  const status = match?.status?.toUpperCase() || "TIMED";
+  const isMatchStarted = ["IN_PLAY", "PAUSED", "LIVE", "HT", "1H", "2H", "ET", "PEN", "FINISHED"].includes(status);
+  
+  const officialHome = match?.score?.fullTime?.home ?? match?.score?.regularTime?.home;
+  const officialAway = match?.score?.fullTime?.away ?? match?.score?.regularTime?.away;
+  const hasOfficialScore = officialHome != null && officialAway != null;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -52,7 +62,6 @@ export default function PredictionsModal({ isOpen, onClose, match }) {
 
         // 4. Se o próprio usuário logado não estiver na lista de quem palpitou, adiciona ele
         if (user && !membersList.find(m => m.id === user.id)) {
-          // Busca a foto/nome do cara logado caso ele não tenha palpites ainda
           const { data: myProfile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
           
           membersList.unshift({
@@ -82,7 +91,6 @@ export default function PredictionsModal({ isOpen, onClose, match }) {
   if (!isOpen) return null;
 
   const totalPalpites = allMembers.filter(m => m.prediction !== null).length;
-  const taxa = totalPalpites > 0 ? "100%" : "0%"; 
   const membros = allMembers.length;
 
   const renderFlag = (flag: string) => {
@@ -95,6 +103,9 @@ export default function PredictionsModal({ isOpen, onClose, match }) {
 
   const renderUserCard = (user: any) => {
     const hasPredicted = user.prediction !== null;
+    
+    // REGRA DE VISIBILIDADE: Mostra se for você OU se o jogo já começou
+    const showPrediction = user.isMe || isMatchStarted;
 
     return (
       <div 
@@ -143,7 +154,7 @@ export default function PredictionsModal({ isOpen, onClose, match }) {
           }}
         >
           {hasPredicted ? (
-            user.isMe ? (
+            showPrediction ? (
               `${user.prediction.home_score} x ${user.prediction.away_score}`
             ) : (
               <>
@@ -173,44 +184,46 @@ export default function PredictionsModal({ isOpen, onClose, match }) {
           </button>
         </div>
 
+        {/* CABEÇALHO DO JOGO COM PLACAR OFICIAL DINÂMICO */}
         <div className="px-6 py-4 flex items-center justify-center gap-6">
           <div className="flex flex-col items-center gap-2 w-[100px]">
             {renderFlag(match.home_flag)}
-            <span className="text-[12px] font-semibold text-[#8a9a8e] text-center">{match.home_team}</span>
+            <span className="text-[12px] font-semibold text-[#8a9a8e] text-center">{match.homeTeam?.name || match.home_team}</span>
           </div>
           
           <div className="flex items-center gap-3 text-2xl font-black text-white">
-            <span>-</span>
-            <span className="text-[#444] text-xl">×</span>
-            <span>-</span>
+            {isMatchStarted && hasOfficialScore ? (
+              <>
+                <span className="text-[#4edea3] text-[28px]">{officialHome}</span>
+                <span className="text-[#444] text-xl font-medium">×</span>
+                <span className="text-[#4edea3] text-[28px]">{officialAway}</span>
+              </>
+            ) : (
+              <>
+                <span>-</span>
+                <span className="text-[#444] text-xl font-medium">×</span>
+                <span>-</span>
+              </>
+            )}
           </div>
 
           <div className="flex flex-col items-center gap-2 w-[100px]">
             {renderFlag(match.away_flag)}
-            <span className="text-[12px] font-semibold text-[#8a9a8e] text-center">{match.away_team}</span>
+            <span className="text-[12px] font-semibold text-[#8a9a8e] text-center">{match.awayTeam?.name || match.away_team}</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-px bg-white/5 border-y border-white/5">
+        {/* BARRA DE STATUS (Sem a Taxa) */}
+        <div className="grid grid-cols-2 gap-px bg-white/5 border-y border-white/5">
           <div className="bg-[#141414] py-3 flex flex-col items-center justify-center">
             <span className="text-white font-bold text-[14px]">{totalPalpites} <span className="text-[#8a9a8e] font-medium text-[11px]">Palpites</span></span>
-          </div>
-          <div className="bg-[#141414] py-3 flex flex-col items-center justify-center">
-            <span className="text-white font-bold text-[14px]">{taxa} <span className="text-[#8a9a8e] font-medium text-[11px]">Taxa</span></span>
           </div>
           <div className="bg-[#141414] py-3 flex flex-col items-center justify-center">
             <span className="text-white font-bold text-[14px]">{membros} <span className="text-[#8a9a8e] font-medium text-[11px]">Membros</span></span>
           </div>
         </div>
 
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-[#ffb95f]/20 bg-[#ffb95f]/5 text-[#ffb95f] text-[13px] font-bold">
-            <span className="material-symbols-rounded text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-            Rodada com multiplicador 2x
-          </div>
-        </div>
-
-        <div className="px-6 grid grid-cols-2 gap-1 p-1 bg-[#1a1a1a] mx-6 rounded-xl border border-white/5">
+        <div className="px-6 grid grid-cols-2 gap-1 p-1 bg-[#1a1a1a] mx-6 mt-4 rounded-xl border border-white/5">
           <button 
             onClick={() => setActiveTab("palpites")}
             className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-bold transition-all ${activeTab === "palpites" ? "bg-[#1f2e26] text-[#4edea3] shadow-sm" : "text-[#8a9a8e] hover:text-[#e5e2e1]"}`}
@@ -282,11 +295,11 @@ export default function PredictionsModal({ isOpen, onClose, match }) {
                                 <span className="text-[#8a9a8e]">{dataStr} às {timeStr}</span>
                               </div>
                               <div className="flex items-center gap-2 bg-[#1a1a1a] border border-white/5 px-3 py-2 rounded-lg w-fit mt-1">
-                                <span className="text-white font-bold">{match.home_team}</span>
+                                <span className="text-white font-bold">{match.homeTeam?.name || match.home_team}</span>
                                 <span className="text-[#4edea3] font-black text-lg mx-1">{item.home_score}</span>
                                 <span className="text-[#444] text-[12px]">x</span>
                                 <span className="text-[#4edea3] font-black text-lg mx-1">{item.away_score}</span>
-                                <span className="text-white font-bold">{match.away_team}</span>
+                                <span className="text-white font-bold">{match.awayTeam?.name || match.away_team}</span>
                               </div>
                             </div>
                           </div>
