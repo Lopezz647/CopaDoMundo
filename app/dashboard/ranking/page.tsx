@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-const POINT_VALUES = [10, 7, 5, 3, 0];
+const POINT_VALUES = [10, 7, 5, 2, 0];
 
 // Fases fixas da Copa do Mundo para garantir o filtro correto (3 Rodadas + Mata-Mata)
 const WORLD_CUP_PHASES = [
@@ -331,7 +331,7 @@ export default function Ranking() {
                 </div>
 
                 {POINT_VALUES.map(p => {
-                  const colors: Record<number, string> = { 10: "#4edea3", 7: "#64a0ff", 5: "#ffb95f", 3: "#b482ff", 0: "#ff6464" };
+                  const colors: Record<number, string> = { 10: "#4edea3", 7: "#64a0ff", 5: "#ffb95f", 2: "#b482ff", 0: "#ff6464" };
                   return (
                     <div key={p} className="text-center">
                       <span
