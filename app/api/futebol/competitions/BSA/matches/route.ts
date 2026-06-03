@@ -25,7 +25,7 @@ export async function GET() {
 
     const data = await res.json()
     // --- INÍCIO DO MOCK (MÁQUINA DO TEMPO) ---
-    const minutosAdicionais = 25; 
+    const minutosAdicionais = -10; 
 
     const jogoFalso = {
       id: 999991,
@@ -33,7 +33,7 @@ export async function GET() {
       homeTeam: { name: "Brasil", shortName: "BRA", crest: "https://crests.football-data.org/764.svg" },
       awayTeam: { name: "Argentina", shortName: "ARG", crest: "https://crests.football-data.org/762.png" },
       utcDate: new Date(Date.now() + minutosAdicionais * 60000).toISOString(), 
-      status: "FINISHED",
+      status: "IN_PLAY",
       score: {
         fullTime: {home: 3, away: 1}
       }
