@@ -95,7 +95,7 @@ export default function Ranking() {
       const predMap: Record<string, any> = {};
       userPreds.forEach(p => { predMap[p.match_id] = p; });
 
-      const counters: Record<number, number> = { 10: 0, 7: 0, 5: 0, 3: 0, 0: 0 };
+      const counters: Record<number, number> = { 10: 0, 7: 0, 5: 0, 2: 0, 0: 0 };
       let totalPointsCalculated = 0;
 
       finishedMatches.forEach(match => {
@@ -275,7 +275,7 @@ export default function Ranking() {
           <span className="text-center text-[#4edea3]">10</span>
           <span className="text-center text-[#64a0ff]">7</span>
           <span className="text-center text-[#ffb95f]">5</span>
-          <span className="text-center text-[#b482ff]">3</span>
+          <span className="text-center text-[#b482ff]">2</span>
           <span className="text-center text-[#ff6464]">0</span>
         </div>
 
