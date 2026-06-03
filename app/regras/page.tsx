@@ -15,7 +15,7 @@ const rules = [
     title: "Pontuação",
     items: [
       "Placar exato: 10 pontos",
-      "Acertar o vencedor + diferença de gols: 7 pontos",
+      "Acertar o vencedor + 1 placar: 7 pontos",
       "Acertar o vencedor: 5 pontos",
       "Acertar tendência (ex: empate sem placar exato): 2 pontos",
       "Errou tudo: 0 pontos",
