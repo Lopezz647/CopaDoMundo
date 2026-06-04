@@ -146,7 +146,7 @@ export default function Palpites() {
 
     loadData();
 
-    // ✅ NOVO: Polling automático a cada 5 segundos durante partidas
+        // ✅ NOVO: Polling automático a cada 5 segundos durante partidas
     const interval = setInterval(async () => {
       try {
         const response = await fetch("/api/futebol/competitions/WC/matches");
@@ -164,18 +164,24 @@ export default function Palpites() {
           score: m.score
         }));
 
-        // Só atualiza se houve mudança
-        const hasChanges = JSON.stringify(formattedMatches) !== JSON.stringify(matches);
-        if (hasChanges) {
-          setMatches(formattedMatches);
-        }
+        // Usamos a função de callback do setMatches para ter acesso à lista atual (prevMatches)
+        // Desta forma, não precisamos de ter o 'matches' nas dependências do useEffect
+        setMatches((prevMatches) => {
+          const hasChanges = JSON.stringify(formattedMatches) !== JSON.stringify(prevMatches);
+          if (hasChanges) {
+             return formattedMatches;
+          }
+          return prevMatches; // Se for igual, não atualiza o estado, evitando re-renders
+        });
+
       } catch (error) {
         console.error("Erro ao atualizar matches:", error);
       }
     }, 5000); // A cada 5 segundos
 
     return () => clearInterval(interval);
-  }, [matches, supabase]);
+  }, [supabase]); // <-- A CORREÇÃO: 'matches' foi removido daqui
+
 
   // 2. Inteligência de Sincronização Dinâmica
   const allUniqueDates = useMemo(() => {
