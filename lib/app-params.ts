@@ -1,14 +1,23 @@
 const isNode = typeof window === 'undefined';
-const windowObj = isNode ? { localStorage: new Map() } : window;
+
+// Imitação do localStorage para o servidor (SSR)
+const mockStorage = {
+  getItem: (key: string) => null,
+  setItem: (key: string, value: string) => {},
+  removeItem: (key: string) => {},
+  clear: () => {}
+} as unknown as Storage;
+
+const windowObj = isNode ? { location: { href: '' }, localStorage: mockStorage } : (window as any);
 const storage = windowObj.localStorage;
 
 const toSnakeCase = (str: string) => {
 	return str.replace(/([A-Z])/g, '_$1').toLowerCase();
 }
-// Altere a assinatura da função para isto:
+
 const getAppParamValue = (
-  paramName: string, 
-  { defaultValue = undefined, removeFromUrl = false }: { defaultValue?: any, removeFromUrl?: boolean } = {}
+    paramName: string, 
+    { defaultValue = undefined, removeFromUrl = false }: { defaultValue?: any, removeFromUrl?: boolean } = {}
 ) => {
 	if (isNode) {
 		return defaultValue;
@@ -23,12 +32,7 @@ const getAppParamValue = (
 		window.history.replaceState({}, document.title, newUrl);
 	}
 	if (searchParam) {
-		if ('setItem' in storage && typeof storage.setItem === 'function') {
-			storage.setItem(storageKey, searchParam);
-		}		else {
-			(storage as Map<any, any>).set(storageKey, searchParam);
-		}
-		
+		storage.setItem(storageKey, searchParam);
 		return searchParam;
 	}
 	if (defaultValue) {
@@ -48,7 +52,6 @@ const getAppParams = () => {
 		storage.removeItem('token');
 	}
     
-    // CORREÇÃO AQUI: Mudando de import.meta.env para process.env.NEXT_PUBLIC_
 	return {
 		appId: getAppParamValue("app_id", { defaultValue: process.env.NEXT_PUBLIC_BASE44_APP_ID }),
 		token: getAppParamValue("access_token", { removeFromUrl: true }),
