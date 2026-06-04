@@ -6,7 +6,8 @@ import { type NextRequest, NextResponse } from 'next/server'
 export async function middleware(request: NextRequest) {
   // Rate limit para API
   if (request.nextUrl.pathname.startsWith('/api/')) {
-    const ip = request.ip || 'anonymous'
+    // CORREÇÃO AQUI: Obtendo o IP através dos headers, que é o padrão correto no Next.js
+    const ip = request.headers.get('x-forwarded-for') ?? 'anonymous'
     const { allowed, remaining } = await checkRateLimit(ip, 30, 60000)
 
     if (!allowed) {
