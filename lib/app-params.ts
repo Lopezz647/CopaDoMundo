@@ -5,6 +5,7 @@ const storage = windowObj.localStorage;
 const toSnakeCase = (str: string) => {
 	return str.replace(/([A-Z])/g, '_$1').toLowerCase();
 }
+// Altere a assinatura da função para isto:
 const getAppParamValue = (
   paramName: string, 
   { defaultValue = undefined, removeFromUrl = false }: { defaultValue?: any, removeFromUrl?: boolean } = {}
