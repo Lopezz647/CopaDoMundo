@@ -10,11 +10,13 @@ const WORLD_CUP_PHASES = [
   { id: "ROUND_1", label: "Rodada 1" },
   { id: "ROUND_2", label: "Rodada 2" },
   { id: "ROUND_3", label: "Rodada 3" },
-  { id: "LAST_16", label: "Oitavas" },
+  { id: "LAST_32", label: "16 avos" },      
+  { id: "LAST_16", label: "Oitavas" },      
   { id: "QUARTER_FINALS", label: "Quartas" },
   { id: "SEMI_FINALS", label: "Semifinal" },
   { id: "FINAL", label: "Final" }
 ];
+
 
 function MedalIcon({ rank }: { rank: number }) {
   if (rank === 1) return <span className="text-[16px]">🥇</span>;
@@ -109,15 +111,22 @@ export default function Ranking() {
         }
       });
 
-      const rounds = Array.from(new Set(filteredMatches.map(m => m.matchday).filter(Boolean)));
+            // Usa matchday para os grupos, ou stage para o mata-mata como chave de agrupamento
+      const roundKeys = Array.from(new Set(filteredMatches.map(m => m.matchday ? `MD_${m.matchday}` : `STG_${m.stage}`)));
       let maxRound = 0;
-      rounds.forEach(r => {
-        const roundMatches = finishedMatches.filter(m => m.matchday === r);
+      
+      roundKeys.forEach(key => {
+        // Filtra os jogos que pertencem a esta chave
+        const roundMatches = finishedMatches.filter(m => (m.matchday ? `MD_${m.matchday}` : `STG_${m.stage}`) === key);
         let roundPts = 0;
+        
         roundMatches.forEach(match => {
           const pred = predMap[match.id];
-          if (pred && pred.points) roundPts += pred.points;
+          if (pred && pred.points !== null && pred.points !== undefined) {
+            roundPts += pred.points;
+          }
         });
+        
         if (roundPts > maxRound) maxRound = roundPts;
       });
 
