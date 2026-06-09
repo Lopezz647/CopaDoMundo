@@ -18,7 +18,7 @@ export async function GET() {
         headers: {
           'X-Auth-Token': API_KEY,
         },
-        next: { revalidate: 60 }, // ISR: revalidate a cada 60 segundos
+        next: { revalidate: 900 }, // ISR: revalidate a cada 60 segundos
       }
     )
 
