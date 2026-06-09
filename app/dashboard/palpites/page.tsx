@@ -82,6 +82,18 @@ export default function Palpites() {
   const [loading, setLoading] = useState<boolean>(true);
   const [allPredictions, setAllPredictions] = useState<Prediction[]>([]); 
 
+const getRoundFromStage = (stage: string, matchday: number | null | undefined): number => {
+  if (matchday) return matchday;
+  switch (stage) {
+    case 'LAST_32': return 4; // 16 avos
+    case 'LAST_16': return 5; // Oitavas
+    case 'QUARTER_FINALS': return 6;
+    case 'SEMI_FINALS': return 7;
+    case 'FINAL': return 8;
+    default: return 1;
+  }
+};
+
   // 1. Carregar os jogos reais da API e os palpites do Supabase
   useEffect(() => {
     async function loadData() {
@@ -92,17 +104,20 @@ export default function Palpites() {
         const response = await fetch("/api/futebol/competitions/WC/matches");
         const matchData = await response.json();
 
-        const formattedMatches: Match[] = (matchData.matches || []).map((m: ApiMatch) => ({
-          id: String(m.id),
-          home_team: m.homeTeam.name,
-          away_team: m.awayTeam.name,
-          home_flag: m.homeTeam.crest || "🏳️",
-          away_flag: m.awayTeam.crest || "🏳️",
-          match_date: m.utcDate,
-          round: m.matchday || 1,
-          status: m.status,
-          score: m.score
-        }));
+        const formattedMatches: Match[] = (matchData.matches || []).map((m: any) => ({
+  id: String(m.id),
+  home_team: m.homeTeam?.name,
+  away_team: m.awayTeam?.name,
+  home_flag: m.homeTeam?.crest || "🏳️",
+  away_flag: m.awayTeam?.crest || "🏳️",
+  match_date: m.utcDate,
+  
+  round: getRoundFromStage(m.stage, m.matchday), // <--- A CORREÇÃO ENTRA AQUI
+  
+  status: m.status,
+  score: m.score
+}));
+
 
         setMatches(formattedMatches);
 
@@ -152,17 +167,18 @@ export default function Palpites() {
         const response = await fetch("/api/futebol/competitions/WC/matches");
         const matchData = await response.json();
 
-        const formattedMatches: Match[] = (matchData.matches || []).map((m: ApiMatch) => ({
-          id: String(m.id),
-          home_team: m.homeTeam.name,
-          away_team: m.awayTeam.name,
-          home_flag: m.homeTeam.crest || "🏳️",
-          away_flag: m.awayTeam.crest || "🏳️",
-          match_date: m.utcDate,
-          round: m.matchday || 1,
-          status: m.status,
-          score: m.score
-        }));
+        const formattedMatches: Match[] = (matchData.matches || []).map((m: any) => ({
+  id: String(m.id),
+  home_team: m.homeTeam?.name,
+  away_team: m.awayTeam?.name,
+  home_flag: m.homeTeam?.crest || "🏳️",
+  away_flag: m.awayTeam?.crest || "🏳️",
+  match_date: m.utcDate,
+  round: getRoundFromStage(m.stage, m.matchday), // <--- A CORREÇÃO ENTRA AQUI
+  status: m.status,
+  score: m.score
+}));
+
 
         // Usamos a função de callback do setMatches para ter acesso à lista atual (prevMatches)
         // Desta forma, não precisamos de ter o 'matches' nas dependências do useEffect
