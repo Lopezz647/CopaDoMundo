@@ -177,7 +177,7 @@ export default function Palpites() {
       } catch (error) {
         console.error("Erro ao atualizar matches:", error);
       }
-    }, 5000); // A cada 5 segundos
+    }, 900000); // A cada 5 segundos
 
     return () => clearInterval(interval);
   }, [supabase]); // <-- A CORREÇÃO: 'matches' foi removido daqui
