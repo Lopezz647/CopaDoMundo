@@ -152,8 +152,8 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser 
     const pred = predMap[String(match.id)];
     let scored = null;
     
-    const officialHome = match.score?.fullTime?.home ?? match.score?.regularTime?.home ?? null;
-    const officialAway = match.score?.fullTime?.away ?? match.score?.regularTime?.away ?? null;
+    const officialHome = match.score?.regularTime?.home ?? match.score?.fullTime?.home ?? null;
+const officialAway = match.score?.regularTime?.away ?? match.score?.fullTime?.away ?? null;
     const hasOfficialScore = officialHome != null && officialAway != null;
     
     if (hasOfficialScore && pred && pred.home_score != null && pred.away_score != null) {
@@ -333,8 +333,9 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
       const match = liveMatches.find((m) => String(m.id) === String(p.match_id));
 
       if (match && (match.status === "IN_PLAY" || match.status === "FINISHED" || match.status === "PAUSED")) {
-        const officialHome = match.score?.fullTime?.home ?? match.score?.regularTime?.home ?? null;
-        const officialAway = match.score?.fullTime?.away ?? match.score?.regularTime?.away ?? null;
+        const officialHome = match.score?.regularTime?.home ?? match.score?.fullTime?.home ?? null;
+        const officialAway = match.score?.regularTime?.away ?? match.score?.fullTime?.away ?? null;
+
         
         let calculatedPoints = 0;
         if (officialHome != null && officialAway != null && p.home_score != null && p.away_score != null) {
