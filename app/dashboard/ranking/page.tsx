@@ -51,7 +51,7 @@ export default function Ranking() {
       if (errorPreds) console.error("❌ Erro no Supabase (Predictions):", errorPreds.message);
 
       try {
-        const res = await fetch("/api/futebol/competitions/BSA/matches");
+        const res = await fetch("/api/futebol/competitions/WC/matches");
         const matchData = await res.json();
         setAllMatches(matchData.matches || []);
       } catch (error) {
