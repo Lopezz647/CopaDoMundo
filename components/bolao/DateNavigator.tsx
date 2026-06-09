@@ -5,7 +5,7 @@ const MONTH_NAMES = ["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT"
 
 // AJUSTE 1: Definindo o limite de grupos e o total de fases da Copa
 const MAX_GROUP_ROUNDS = 3; 
-const MAX_TOTAL_ROUNDS = 7; 
+const MAX_TOTAL_ROUNDS = 8; 
 
 // --- NOVAS INTERFACES DE TIPAGEM ---
 export interface Prediction {
@@ -46,10 +46,11 @@ export default function DateNavigator({
   // AJUSTE 2: Função que nomeia a rodada de acordo com o número numérico (1 a 7)
   const getRoundTitle = (round: number) => {
     if (round <= MAX_GROUP_ROUNDS) return `Rodada ${round} - Grupos`;
-    if (round === 4) return "Oitavas de Final";
-    if (round === 5) return "Quartas de Final";
-    if (round === 6) return "Semifinal";
-    if (round === 7) return "Final";
+    if (round === 4) return "16 avos de Final";
+    if (round === 5) return "Oitavas de Final";
+    if (round === 6) return "Quartas de Final";
+    if (round === 7) return "Semifinal";
+    if (round === 8) return "Final";
     return "Playoffs";
   };
 
