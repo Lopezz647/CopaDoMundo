@@ -1,4 +1,3 @@
-// app/api/futebol/competitions/WC/matches/route.ts
 import { NextResponse } from 'next/server';
 
 // Força a rota a ser dinâmica e fura o cache definitivo do Next.js
