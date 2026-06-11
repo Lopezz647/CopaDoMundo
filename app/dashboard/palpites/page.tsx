@@ -127,10 +127,12 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
           }
         }
         // Adicione logo após o bloco de carregar palpites:
+                // DEPOIS (CORRIGIDO):
         const { data: ranking } = await supabase
-          .from("profiles") // Verifique se o nome da sua tabela é este
-          .select("name, points")
+          .from("profiles") 
+          .select("id, name, points") // <--- Adicionamos o 'id'
           .order("points", { ascending: false });
+
         
         if (ranking) setDbRanking(ranking);
 
