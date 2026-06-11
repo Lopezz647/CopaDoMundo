@@ -95,49 +95,87 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
 };
 
     // 1. Carregar os jogos reais da API e os palpites do Supabase
-  useEffect(() => {
-    let isMounted = true; // Segurança para evitar memory leak
+    useEffect(() => {
+    let isMounted = true; 
 
     async function loadData() {
       try {
         setLoading(true);
+
+        // 1. Pegar o Usuário Autenticado no Supabase
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (!user || authError) {
+          console.error("Usuário não autenticado");
+          if (isMounted) setLoading(false);
+          return;
+        }
+
+        if (isMounted) {
+          setUserId(user.id);
+          setUserEmail(user.email || "");
+        }
+
+        // 2. Carregar os Palpites reais do Banco de Dados
+        const { data: dbPredictions, error: predError } = await supabase
+          .from("predictions")
+          .select("*")
+          .eq("user_id", user.id);
+
+        if (!predError && dbPredictions && isMounted) {
+          const formattedPreds = dbPredictions.map(p => ({
+            id: p.id,
+            user_id: p.user_id,
+            match_id: String(p.match_id), // Garante que o ID seja string para bater com a API
+            home_score: p.score_home,
+            away_score: p.score_away,
+            points: p.points
+          }));
+          setPredictions(formattedPreds);
+          setAllPredictions(formattedPreds);
+        }
+
+        // 3. Carregar os Jogos da API
         const response = await fetch(`/api/futebol/competitions/WC/matches?t=${Date.now()}`, { cache: 'no-store' });
         const matchData = await response.json();
 
-        if (!isMounted) return;
-
-        const formattedMatches: Match[] = (matchData.matches || []).map((m: any) => ({
-          id: String(m.id),
-          home_team: m.homeTeam?.name,
-          away_team: m.awayTeam?.name,
-          home_flag: m.homeTeam?.crest || "🏳️",
-          away_flag: m.awayTeam?.crest || "🏳️",
-          match_date: m.utcDate,
-          round: getRoundFromStage(m.stage, m.matchday),
-          status: m.status,
-          score: m.score
-        }));
-
-        setMatches(formattedMatches);
+        if (isMounted && matchData && matchData.matches) {
+          const formattedMatches: Match[] = matchData.matches.map((m: any) => ({
+            id: String(m.id),
+            home_team: m.homeTeam?.name,
+            away_team: m.awayTeam?.name,
+            home_flag: m.homeTeam?.crest || "🏳️",
+            away_flag: m.awayTeam?.crest || "🏳️",
+            match_date: m.utcDate,
+            round: getRoundFromStage(m.stage, m.matchday),
+            status: m.status,
+            score: m.score
+          }));
+          setMatches(formattedMatches);
+        }
         
-        // [Aqui mantém o seu código existente de carregar palpites e ranking...]
         setLoading(false);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
+        if (isMounted) setLoading(false);
       }
     }
 
     loadData();
 
-    // Polling ajustado para 10 segundos (10000ms)
+    // Polling protegido contra erros da API (evita sumir os jogos)
     const interval = setInterval(async () => {
       try {
         const response = await fetch(`/api/futebol/competitions/WC/matches?t=${Date.now()}`, { cache: 'no-store' });
+        
+        // Se a API externa recusar a conexão (rate limit, etc), ignoramos para não apagar a tela
+        if (!response.ok) return; 
+
         const matchData = await response.json();
         
-        if (!isMounted) return;
+        // Proteção extra: só atualiza se realmente vier um array de jogos válido
+        if (!isMounted || !matchData || !matchData.matches) return;
 
-        const newMatches: Match[] = (matchData.matches || []).map((m: any) => ({
+        const newMatches: Match[] = matchData.matches.map((m: any) => ({
           id: String(m.id),
           home_team: m.homeTeam?.name,
           away_team: m.awayTeam?.name,
@@ -149,7 +187,6 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
           score: m.score
         }));
 
-        // LÓGICA DE PROTEÇÃO: Só atualiza se o placar ou status mudou
         setMatches((prev) => {
           if (JSON.stringify(prev) !== JSON.stringify(newMatches)) {
             return newMatches;
@@ -157,7 +194,7 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
           return prev;
         });
       } catch (error) {
-        console.error("Erro no polling:", error);
+        console.error("Erro no polling (ignorado):", error);
       }
     }, 10000); 
 
@@ -165,7 +202,7 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
       isMounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, []); // <-- ARRAY VAZIO MANTIDO PARA EVITAR O LOOP INFINITO
 
 
 
