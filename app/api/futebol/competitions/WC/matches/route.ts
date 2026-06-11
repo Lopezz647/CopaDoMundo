@@ -1,17 +1,18 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import https from 'https'; // Módulo nativo do Node.js, não precisa instalar nada
+import https from 'https';
 
-export async function GET() {
+// Adicionamos a tipagem de retorno aqui
+export async function GET(): Promise<NextResponse> {
   const API_KEY = process.env.FOOTBALL_API_KEY;
 
   if (!API_KEY) {
     return NextResponse.json({ error: 'Token não configurado' }, { status: 500 });
   }
 
-  return new Promise((resolve) => {
-    // Fazemos a requisição diretamente pela base do servidor, ignorando o Next.js
+  // E tipamos a Promise aqui
+  return new Promise<NextResponse>((resolve) => {
     const req = https.get(
       'https://api.football-data.org/v4/competitions/WC/matches',
       {
@@ -23,12 +24,10 @@ export async function GET() {
       (res) => {
         let data = '';
 
-        // Recebe os pacotes de dados
         res.on('data', (chunk) => {
           data += chunk;
         });
 
-        // Quando terminar de receber, monta o JSON e devolve para o site
         res.on('end', () => {
           try {
             const parsedData = JSON.parse(data);
