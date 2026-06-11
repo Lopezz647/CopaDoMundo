@@ -202,7 +202,7 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
       isMounted = false;
       clearInterval(interval);
     };
-  }, []); // <-- ARRAY VAZIO MANTIDO PARA EVITAR O LOOP INFINITO
+  }, [supabase]); // <-- ARRAY VAZIO MANTIDO PARA EVITAR O LOOP INFINITO
 
 
 
