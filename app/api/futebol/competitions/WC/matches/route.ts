@@ -1,8 +1,10 @@
+// Força a rota a ser dinâmica e fura o cache definitivo do Next.js
+export const dynamic = 'force-dynamic';
+
 // app/api/futebol/competitions/WC/matches/route.ts
 import { NextResponse } from 'next/server';
 
-// Força a rota a ser dinâmica e fura o cache definitivo do Next.js
-export const dynamic = 'force-dynamic';
+
 
 export async function GET() {
   const API_KEY = process.env.FOOTBALL_API_KEY;
