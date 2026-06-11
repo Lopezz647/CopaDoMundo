@@ -129,7 +129,7 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
                // Busca do ranking corrigida com as colunas exatas do seu banco
         const { data: ranking, error: rankError } = await supabase
           .from("profiles")
-          .select("id, name, total_points") // Puxando "total_points" em vez de "points"
+          .select("id, name, avatar_url, total_points") // Puxando "total_points" em vez de "points"
           .order("total_points", { ascending: false }); // Ordenando por "total_points"
         
         if (rankError) {
