@@ -165,7 +165,7 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
       isMounted = false;
       clearInterval(interval);
     };
-  }, [supabase]);
+  }, []);
 
 
 
