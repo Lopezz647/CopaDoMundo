@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const API_KEY = process.env.FOOTBALL_API_TOKEN;
+const API_KEY = process.env.FOOTBALL_API_KEY; // (Ou o nome exato que você salvou na Vercel)
 
   if (!API_KEY) {
     return NextResponse.json(
