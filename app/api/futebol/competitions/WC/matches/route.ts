@@ -1,9 +1,7 @@
-// Força a rota a ser sempre renderizada no servidor
 export const dynamic = 'force-dynamic';
-// Força o Next.js a nunca fazer cache de nenhum fetch neste arquivo
-export const fetchCache = 'force-no-store';
 
 import { NextResponse } from 'next/server';
+import https from 'https'; // Módulo nativo do Node.js, não precisa instalar nada
 
 export async function GET() {
   const API_KEY = process.env.FOOTBALL_API_KEY;
@@ -12,32 +10,39 @@ export async function GET() {
     return NextResponse.json({ error: 'Token não configurado' }, { status: 500 });
   }
 
-  try {
-    const res = await fetch(
+  return new Promise((resolve) => {
+    // Fazemos a requisição diretamente pela base do servidor, ignorando o Next.js
+    const req = https.get(
       'https://api.football-data.org/v4/competitions/WC/matches',
       {
         headers: {
           'X-Auth-Token': API_KEY,
-          // Os 3 cabeçalhos abaixo obrigam qualquer CDN (Cloudflare, Vercel, etc.) a ir buscar o dado original
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-        cache: 'no-store'
+          'Cache-Control': 'no-cache'
+        }
+      },
+      (res) => {
+        let data = '';
+
+        // Recebe os pacotes de dados
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        // Quando terminar de receber, monta o JSON e devolve para o site
+        res.on('end', () => {
+          try {
+            const parsedData = JSON.parse(data);
+            resolve(NextResponse.json(parsedData));
+          } catch (e) {
+            resolve(NextResponse.json({ error: 'Erro ao processar dados da API' }, { status: 500 }));
+          }
+        });
       }
     );
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`❌ ERRO FOOTBALL-DATA (Status ${res.status}):`, errorText);
-      throw new Error(`Falha na API: Status ${res.status}`);
-    }
-
-    const data = await res.json();
-    return NextResponse.json(data);
-    
-  } catch (error: any) {
-    console.error("❌ ERRO NO BACKEND:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+    req.on('error', (error) => {
+      console.error("❌ ERRO NATIVO NO BACKEND:", error.message);
+      resolve(NextResponse.json({ error: error.message }, { status: 500 }));
+    });
+  });
 }
