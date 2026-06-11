@@ -100,34 +100,66 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
   useEffect(() => {
     let isMounted = true; // Segurança para evitar memory leak
 
-    async function loadData() {
+        async function loadData() {
       try {
         setLoading(true);
+
+        // 1. Carrega dados de Usuário e Palpites em paralelo
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+          setUserEmail(user.email || "");
+
+          const { data: userPreds } = await supabase
+            .from("predictions")
+            .select("*")
+            .eq("user_id", user.id);
+
+          if (userPreds) {
+            // Mapeia para o formato que o componente espera
+            const formatted = userPreds.map(p => ({
+              match_id: String(p.match_id),
+              home_score: p.score_home,
+              away_score: p.score_away,
+              user_id: user.id
+            }));
+            setPredictions(formatted);
+          }
+        }
+        // Adicione logo após o bloco de carregar palpites:
+        const { data: ranking } = await supabase
+          .from("profiles") // Verifique se o nome da sua tabela é este
+          .select("name, points")
+          .order("points", { ascending: false });
+        
+        if (ranking) setDbRanking(ranking);
+
+        // 2. Carrega Jogos
         const response = await fetch(`/api/futebol/competitions/WC/matches?t=${Date.now()}`, { cache: 'no-store' });
         const matchData = await response.json();
 
-        if (!isMounted) return;
-
-        const formattedMatches: Match[] = (matchData.matches || []).map((m: any) => ({
-          id: String(m.id),
-          home_team: m.homeTeam?.name,
-          away_team: m.awayTeam?.name,
-          home_flag: m.homeTeam?.crest || "🏳️",
-          away_flag: m.awayTeam?.crest || "🏳️",
-          match_date: m.utcDate,
-          round: getRoundFromStage(m.stage, m.matchday),
-          status: m.status,
-          score: m.score
-        }));
-
-        setMatches(formattedMatches);
+        if (isMounted && matchData.matches) {
+          const formattedMatches: Match[] = matchData.matches.map((m: any) => ({
+            id: String(m.id),
+            home_team: m.homeTeam?.name,
+            away_team: m.awayTeam?.name,
+            home_flag: m.homeTeam?.crest || "🏳️",
+            away_flag: m.awayTeam?.crest || "🏳️",
+            match_date: m.utcDate,
+            round: getRoundFromStage(m.stage, m.matchday),
+            status: m.status,
+            score: m.score
+          }));
+          setMatches(formattedMatches);
+        }
         
-        // [Aqui mantém o seu código existente de carregar palpites e ranking...]
         setLoading(false);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
+        setLoading(false);
       }
     }
+
 
     loadData();
 
@@ -152,8 +184,13 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
         }));
 
         // LÓGICA DE PROTEÇÃO: Só atualiza se o placar ou status mudou
-        setMatches((prev) => {
-          if (JSON.stringify(prev) !== JSON.stringify(newMatches)) {
+                setMatches((prev) => {
+          // Só altera se a quantidade de jogos mudou ou se o ID de um jogo mudou
+          // Isso ignora mudanças internas de placar que a API faz sem necessidade
+          const sameLength = prev.length === newMatches.length;
+          const sameIds = prev.every((m, i) => m.id === newMatches[i]?.id);
+          
+          if (!sameLength || !sameIds) {
             return newMatches;
           }
           return prev;
