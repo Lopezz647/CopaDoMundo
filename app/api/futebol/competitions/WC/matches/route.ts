@@ -1,5 +1,9 @@
 // app/api/futebol/competitions/WC/matches/route.ts
 import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+
+// Adicione esta linha para impedir que o Next.js congele a sua API para sempre
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const API_KEY = process.env.NEXT_PUBLIC_API_TOKEN
