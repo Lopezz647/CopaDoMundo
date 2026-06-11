@@ -126,15 +126,28 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
             setPredictions(formatted);
           }
         }
-        // Adicione logo após o bloco de carregar palpites:
-                // DEPOIS (CORRIGIDO):
-        const { data: ranking } = await supabase
-          .from("profiles") 
-          .select("id, name, points") // <--- Adicionamos o 'id'
-          .order("points", { ascending: false });
-
+               // Busca do ranking corrigida com as colunas exatas do seu banco
+        const { data: ranking, error: rankError } = await supabase
+          .from("profiles")
+          .select("id, name, total_points") // Puxando "total_points" em vez de "points"
+          .order("total_points", { ascending: false }); // Ordenando por "total_points"
         
-        if (ranking) setDbRanking(ranking);
+        if (rankError) {
+          console.error("Erro ao puxar o ranking:", rankError);
+        }
+
+        if (ranking) {
+          // Precisamos mapear 'total_points' para 'points', 
+          // pois o seu componente LiveRanking espera receber 'points'
+          const formattedRanking = ranking.map(jogador => ({
+            id: jogador.id,
+            name: jogador.name,
+            points: jogador.total_points || 0, // Mapeia o valor para a chave correta
+            avatar_url: jogador.avatar_url
+          }));
+          
+          setDbRanking(formattedRanking);
+        }
 
         // 2. Carrega Jogos
         const response = await fetch(`/api/futebol/competitions/WC/matches?t=${Date.now()}`, { cache: 'no-store' });
