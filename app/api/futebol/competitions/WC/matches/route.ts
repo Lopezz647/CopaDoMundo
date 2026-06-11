@@ -1,29 +1,25 @@
-// Força a rota a ser dinâmica e fura o cache definitivo do Next.js
+// Camada 1: Desliga o cache da rota na Vercel
 export const dynamic = 'force-dynamic';
 
-// app/api/futebol/competitions/WC/matches/route.ts
 import { NextResponse } from 'next/server';
-
-
 
 export async function GET() {
   const API_KEY = process.env.FOOTBALL_API_KEY;
 
   if (!API_KEY) {
-    return NextResponse.json(
-      { error: 'Token não configurado' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Token não configurado' }, { status: 500 });
   }
 
   try {
+    // Camada 2: ?nocache= força a API externa a responder dado novo
     const res = await fetch(
-      'https://api.football-data.org/v4/competitions/WC/matches',
+      `https://api.football-data.org/v4/competitions/WC/matches?nocache=${Date.now()}`,
       {
         headers: {
           'X-Auth-Token': API_KEY,
         },
-        next: { revalidate: 900 }, // Fallback de segurança para 15 minutos
+        // Camada 3: Desliga o "Data Cache" interno do Next.js para este fetch específico
+        cache: 'no-store' 
       }
     );
 
@@ -34,9 +30,8 @@ export async function GET() {
     }
 
     const data = await res.json();
-    console.log(`✅ Sucesso! Foram encontrados ${data.matches?.length || 0} jogos.`);
-    
     return NextResponse.json(data);
+    
   } catch (error: any) {
     console.error("❌ ERRO NO BACKEND:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
