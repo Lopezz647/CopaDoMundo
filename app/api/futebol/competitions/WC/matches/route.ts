@@ -1,10 +1,11 @@
+// app/api/futebol/competitions/WC/matches/route.ts
 import { NextResponse } from 'next/server';
 
 // Força a rota a ser dinâmica e fura o cache definitivo do Next.js
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-const API_KEY = process.env.FOOTBALL_API_KEY; // (Ou o nome exato que você salvou na Vercel)
+  const API_KEY = process.env.FOOTBALL_API_TOKEN;
 
   if (!API_KEY) {
     return NextResponse.json(
@@ -14,16 +15,13 @@ const API_KEY = process.env.FOOTBALL_API_KEY; // (Ou o nome exato que você salv
   }
 
   try {
-            const res = await fetch(
-      'https://api.football-data.org/v4/competitions/WC/matches?nocache=' + Date.now(),
+    const res = await fetch(
+      'https://api.football-data.org/v4/competitions/WC/matches',
       {
         headers: {
           'X-Auth-Token': API_KEY,
         },
-        // Removemos o cache: 'no-store' para permitir o uso do next
-        next: { 
-          revalidate: 900 // O seu fallback de segurança de 15 minutos
-        }
+        next: { revalidate: 900 }, // Fallback de segurança para 15 minutos
       }
     );
 
