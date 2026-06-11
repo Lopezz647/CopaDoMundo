@@ -1,5 +1,5 @@
 // app/api/futebol/competitions/WC/matches/route.ts
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 
 
 // Adicione esta linha para impedir que o Next.js congele a sua API para sempre
