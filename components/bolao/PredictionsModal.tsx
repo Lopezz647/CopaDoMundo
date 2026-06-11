@@ -1,3 +1,7 @@
+A alteração que você precisa fazer acontece bem na reta final do seu componente, logo após a renderização dos botões das abas (Palpites e Histórico).
+Você deve substituir a div que contém a classe custom-scrollbar-dates e trocar o fragmento vazio (<>...</>) pelo seu novo wrapper div com a classe min-h-full.
+Aqui está o seu código completo já com a alteração aplicada no lugar correto. Você pode simplesmente copiar e substituir no seu arquivo:
+```tsx
 import React, { useState, useEffect } from "react";
 import { X, User, Clock, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -30,7 +34,6 @@ export default function PredictionsModal({ isOpen, onClose, match }: any) {
         const { data: { user } } = await supabase.auth.getUser();
 
         // 1. Busca os palpites e junta com os dados de Perfil (Nome e Avatar)
-        // Correção: Removido o String() para preservar a tipagem nativa do match.id (Número ou UUID)
         const { data: predictionsData } = await supabase
           .from("predictions")
           .select(`
@@ -45,7 +48,7 @@ export default function PredictionsModal({ isOpen, onClose, match }: any) {
           const { data: hist } = await supabase
             .from("prediction_history")
             .select("*")
-            .eq("match_id", match.id) // Tipagem corrigida aqui também
+            .eq("match_id", match.id)
             .eq("user_id", user.id)
             .order("changed_at", { ascending: false });
             
@@ -54,11 +57,9 @@ export default function PredictionsModal({ isOpen, onClose, match }: any) {
 
        // 3. Formata os membros para exibição
         const membersList = (predictionsData || []).map(p => {
-          // Coleta blindada: procura o placar em todas as chaves possíveis que a API/Banco possa estar entregando
           const hScore = p.home_score ?? p.homeScore ?? p.score_home ?? p.home_goals;
           const aScore = p.away_score ?? p.awayScore ?? p.score_away ?? p.away_goals;
 
-          // Validação robusta que aceita o número 0 corretamente, mas recusa nulos ou vazios
           const hasValidScore = hScore != null && hScore !== "" && aScore != null && aScore !== "";
 
           return {
@@ -248,14 +249,15 @@ export default function PredictionsModal({ isOpen, onClose, match }: any) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 pb-8 custom-scrollbar-dates min-h-[250px]">
+        {/* CONTAINER COM SCROLL CONTROLADO INSERIDO AQUI */}
+        <div className="flex-1 overflow-y-auto px-6 py-5 pb-8 custom-scrollbar min-h-[250px]">
           
           {loading ? (
             <div className="flex items-center justify-center h-full">
               <Loader2 className="w-8 h-8 animate-spin text-[#4edea3]" />
             </div>
           ) : (
-            <>
+            <div className="min-h-full"> {/* Wrapper interno para garantir comportamento do flex */}
               {activeTab === "palpites" && (
                 <div className="flex flex-col gap-6">
                   <div className="flex flex-col gap-2">
@@ -319,7 +321,7 @@ export default function PredictionsModal({ isOpen, onClose, match }: any) {
                   )}
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>
