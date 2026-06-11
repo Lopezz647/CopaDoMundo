@@ -14,13 +14,15 @@ const API_KEY = process.env.FOOTBALL_API_KEY; // (Ou o nome exato que você salv
   }
 
   try {
-    const res = await fetch(
-  'https://api.football-data.org/v4/competitions/WC/matches?nocache=' + Date.now(),
-  {
-    headers: { 'X-Auth-Token': API_KEY },
-    cache: 'no-store', // Isso garante que o Next.js não guarde nada
-  }
-);
+        const res = await fetch(
+      'https://api.football-data.org/v4/competitions/WC/matches?nocache=' + Date.now(),
+      {
+        headers: {
+          'X-Auth-Token': API_KEY,
+        },
+        cache: 'no-store' // Isso força o Next.js a ignorar o cache e buscar sempre a versão atual
+      }
+    );
         next: { revalidate: 900 }, // Fallback de segurança para 15 minutos
       }
     );
