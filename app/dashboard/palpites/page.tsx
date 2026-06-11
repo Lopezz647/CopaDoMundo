@@ -148,8 +148,24 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
           
           setDbRanking(formattedRanking);
         }
+        // 2. Carrega TODOS os palpites (necessário para o Ranking Ao Vivo mostrar os detalhes)
+        const { data: allPredsData, error: allPredsError } = await supabase
+          .from("predictions")
+          .select("*");
 
-        // 2. Carrega Jogos
+        if (!allPredsError && allPredsData) {
+          const formattedAll = allPredsData.map((p: any) => ({
+            match_id: String(p.match_id),
+            home_score: p.score_home,
+            away_score: p.score_away,
+            user_id: p.user_id
+          }));
+          setAllPredictions(formattedAll);
+        } else if (allPredsError) {
+          console.error("Erro ao carregar todos os palpites:", allPredsError);
+        }
+
+        // 3. Carrega Jogos
         const response = await fetch(`/api/futebol/competitions/WC/matches?t=${Date.now()}`, { cache: 'no-store' });
         const matchData = await response.json();
 
