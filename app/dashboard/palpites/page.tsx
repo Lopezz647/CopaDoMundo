@@ -101,7 +101,9 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
         setLoading(true);
         
         // Buscar matches da API
-        const response = await fetch("/api/futebol/competitions/WC/matches");
+const response = await fetch(`/api/futebol/competitions/WC/matches?t=${Date.now()}`, { 
+  cache: 'no-store' 
+});
         const matchData = await response.json();
 
         const formattedMatches: Match[] = (matchData.matches || []).map((m: any) => ({
