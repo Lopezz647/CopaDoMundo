@@ -1,7 +1,3 @@
-A alteração que você precisa fazer acontece bem na reta final do seu componente, logo após a renderização dos botões das abas (Palpites e Histórico).
-Você deve substituir a div que contém a classe custom-scrollbar-dates e trocar o fragmento vazio (<>...</>) pelo seu novo wrapper div com a classe min-h-full.
-Aqui está o seu código completo já com a alteração aplicada no lugar correto. Você pode simplesmente copiar e substituir no seu arquivo:
-```tsx
 import React, { useState, useEffect } from "react";
 import { X, User, Clock, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
