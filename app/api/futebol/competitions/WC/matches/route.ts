@@ -4,13 +4,18 @@ export const fetchCache = 'force-no-store';
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Inicializa o Supabase com a Chave de Serviço para ter poderes de gravação (ignora RLS)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! 
-);
-
 export async function GET() {
+  // 1. INICIALIZAÇÃO MOVIDA PARA DENTRO DA FUNÇÃO
+  // O Next.js não vai tentar ler isto durante o 'npm run build'
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+     return NextResponse.json({ error: 'Configuração do Supabase ausente no servidor' }, { status: 500 });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
   const API_KEY = process.env.FOOTBALL_API_KEY;
 
   if (!API_KEY) {
@@ -18,7 +23,6 @@ export async function GET() {
   }
 
   try {
-    // 1. Busca os dados reais da API de Futebol
     const res = await fetch(
       'https://api.football-data.org/v4/competitions/WC/matches',
       {
@@ -38,11 +42,9 @@ export async function GET() {
 
     const data = await res.json();
 
-        // 2. A MÁGICA DA SINCRONIZAÇÃO: Envia para a tabela 'matches' no Supabase
     if (data.matches && Array.isArray(data.matches)) {
-      // Formata os dados EXATAMENTE como a sua tabela SQL exige
       const matchesToUpsert = data.matches.map((match: any) => ({
-        id: match.id, // bigint
+        id: match.id,
         competition_id: match.competition?.id ? String(match.competition.id) : 'WC',
         competition_name: match.competition?.name || 'FIFA World Cup',
         home_team: match.homeTeam?.name || 'A definir',
@@ -55,23 +57,18 @@ export async function GET() {
         score_away: match.score?.fullTime?.away ?? match.score?.regularTime?.away ?? null,
         stage: match.stage || null,
         matchday: match.matchday || null,
-        last_updated: new Date().toISOString() // Força a atualização do horário no índice
+        last_updated: new Date().toISOString()
       }));
 
-      // Upsert: Atualiza os dados no banco
       const { error: dbError } = await supabase
         .from('matches')
         .upsert(matchesToUpsert, { onConflict: 'id' });
 
       if (dbError) {
         console.error("❌ ERRO AO ATUALIZAR SUPABASE:", dbError.message);
-      } else {
-        console.log(`✅ [SYNC] ${matchesToUpsert.length} partidas sincronizadas com a tabela matches.`);
       }
     }
 
-
-    // 3. Devolve os dados para o Front-end normalmente
     return NextResponse.json(data);
     
   } catch (error: any) {
