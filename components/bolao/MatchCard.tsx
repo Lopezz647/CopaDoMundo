@@ -51,14 +51,26 @@ export default function MatchCard({ match, prediction, onPredictionChange }: Mat
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 1. CORREÇÃO: Status e Horário extraídos no escopo principal do componente
+    // 1. CORREÇÃO: Status e Horário extraídos no escopo principal do componente
   const status = match.status?.toUpperCase() || "TIMED";
+  const dateObj = new Date(match.utcDate || match.match_date);
+  const matchTimeMs = dateObj.getTime();
+  
+  // Pegamos a hora atual (como o seu setInterval roda a cada segundo, isso vai se manter atualizado!)
+  const now = Date.now();
+
   const isFinished = ["FINISHED", "FT", "AET"].includes(status);
-  const isLive = ["IN_PLAY", "PAUSED", "LIVE", "HT", "1H", "2H", "ET", "PEN"].includes(status);
+  const isApiLive = ["IN_PLAY", "PAUSED", "LIVE", "HT", "1H", "2H", "ET", "PEN"].includes(status);
+  
+  // A MÁGICA ACONTECE AQUI: Está ao vivo se a API disser que sim 
+  // OU se o relógio já passou da hora do jogo E o jogo ainda não acabou
+  const isLive = isApiLive || (now >= matchTimeMs && !isFinished);
+  
   const isPending = !isFinished && !isLive;
   const showRealScore = isLive || isFinished;
   
-  const dateObj = new Date(match.utcDate || match.match_date);
   const timeStr = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
 
   // O card bloqueia cliques se o tempo acabou, ou se o jogo começou/terminou
   const isLocked = isTimeLocked || isLive || isFinished;
