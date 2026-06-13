@@ -407,14 +407,14 @@ const getRoundFromStage = (stage: string, matchday: number | null | undefined): 
             )}
           </div>
         </div>
-
-        <div className="flex flex-col gap-6">
+               <div className="flex flex-col gap-6">
           <LiveRanking 
-  user={{ id: userId || "", email: userEmail, name: "Você" }} 
-  predictions={allPredictions} 
-  liveMatches={matches} 
-  dbRanking={dbRanking} 
-/>
+            user={{ id: userId || "", email: userEmail, name: "Você" }} 
+            predictions={allPredictions} 
+            liveMatches={matches} 
+            dbRanking={dbRanking} 
+            selectedDate={selectedDate} // <-- A MÁGICA ENTRA AQUI
+          />
         </div>
       </div>
     </>
