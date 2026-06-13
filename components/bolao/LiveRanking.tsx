@@ -6,7 +6,6 @@ import React, { useMemo, useState } from "react";
 // AVALIADOR DE PONTOS (Regras Oficiais)
 // ==========================================
 function getMatchPoints(officialHome: number, officialAway: number, predHome: number, predAway: number) {
-  // 1. Placar Exato (10 pts)
   if (officialHome === predHome && officialAway === predAway) {
     return { pts: 10, text: "Placar exato" };
   }
@@ -23,24 +22,18 @@ function getMatchPoints(officialHome: number, officialAway: number, predHome: nu
     (isOfficialWinnerHome && isPredWinnerHome) || 
     (isOfficialWinnerAway && isPredWinnerAway);
 
-  // 2. Vencedor + 1 placar correto (7 pts)
-  // Ex: Res 3x1, Aposta 2x1 -> Vencedor OK + Placar Away(1) OK
   if (isWinnerCorrect && (officialHome === predHome || officialAway === predAway)) {
     return { pts: 7, text: "Vencedor + 1 placar" };
   }
 
-  // 3. Apenas Vencedor OU Empate (5 pts)
-  // Hierarquia: O empate entra aqui pois 10 pts já pegou o exato
   if (isWinnerCorrect || (isOfficialDraw && isPredDraw)) {
     return { pts: 5, text: "Apenas vencedor/empate" };
   }
 
-  // 4. Acertou 1 placar (2 pts)
   if (officialHome === predHome || officialAway === predAway) {
     return { pts: 2, text: "Acertou 1 placar" };
   }
 
-  // 5. Nada (0 pts)
   return { pts: 0, text: "Errou totalmente" };
 }
 
@@ -121,6 +114,7 @@ interface MemberDetailModalProps {
   predictions: Prediction[];
   onClose: () => void;
   currentUser: User | null;
+  selectedDate: Date; // 1. A DATA DO CALENDÁRIO CHEGA AQUI
 }
 
 interface MatchDetailItem {
@@ -133,7 +127,7 @@ interface MatchDetailItem {
   showPrediction: boolean;
 }
 
-function MemberDetailModal({ member, matches, predictions, onClose, currentUser }: MemberDetailModalProps) {
+function MemberDetailModal({ member, matches, predictions, onClose, currentUser, selectedDate }: MemberDetailModalProps) {
   const memberPredictions = predictions.filter((p) => p.user_id === member.id);
   const predMap: Record<string, Prediction> = {};
   memberPredictions.forEach((p) => { predMap[String(p.match_id)] = p; });
@@ -141,11 +135,12 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser 
   const totals: Record<number, number> = { 10: 0, 7: 0, 5: 0, 3: 0, 0: 0 };
   let totalPoints = 0;
 
-  const todayStr = new Date().toDateString();
+  // CORREÇÃO DO BUG DA MEIA-NOITE: Filtrar com base no calendário (selectedDate) e não no relógio do PC
+  const selectedStr = selectedDate.toDateString();
   const dayMatches = matches.filter((m) => {
     const matchDate = m.utcDate || m.date || m.match_date;
     if (!matchDate) return false;
-    return new Date(matchDate).toDateString() === todayStr;
+    return new Date(matchDate).toDateString() === selectedStr;
   });
 
   const matchDetails: MatchDetailItem[] = dayMatches.map((match) => {
@@ -153,7 +148,7 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser 
     let scored = null;
     
     const officialHome = match.score?.regularTime?.home ?? match.score?.fullTime?.home ?? null;
-const officialAway = match.score?.regularTime?.away ?? match.score?.fullTime?.away ?? null;
+    const officialAway = match.score?.regularTime?.away ?? match.score?.fullTime?.away ?? null;
     const hasOfficialScore = officialHome != null && officialAway != null;
     
     if (hasOfficialScore && pred && pred.home_score != null && pred.away_score != null) {
@@ -162,7 +157,6 @@ const officialAway = match.score?.regularTime?.away ?? match.score?.fullTime?.aw
       totalPoints += scored.pts;
     }
 
-    // REGRA DE VISIBILIDADE DO LIVE RANKING
     const status = match.status?.toUpperCase() || "TIMED";
     const isMatchStarted = ["IN_PLAY", "PAUSED", "LIVE", "HT", "1H", "2H", "ET", "PEN", "FINISHED"].includes(status);
     const showPrediction = isMatchStarted || currentUser?.id === member.id;
@@ -178,7 +172,6 @@ const officialAway = match.score?.regularTime?.away ?? match.score?.fullTime?.aw
         className="relative w-full max-w-lg rounded-2xl border border-white/10 overflow-hidden z-10 shadow-2xl flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200"
         style={{ background: "#181818" }}
       >
-        {/* Cabeçalho do Modal */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 shrink-0">
           <div className="flex items-center gap-3">
             <div
@@ -193,7 +186,9 @@ const officialAway = match.score?.regularTime?.away ?? match.score?.fullTime?.aw
             </div>
             <div>
               <h3 className="text-[16px] font-bold text-[#e5e2e1]">{member.name}</h3>
-              <span className="text-[11px] text-[#8a9a8e] font-medium">Detalhes das partidas de hoje</span>
+              <span className="text-[11px] text-[#8a9a8e] font-medium">
+                Detalhes das partidas de {selectedDate.toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit' })}
+              </span>
             </div>
           </div>
           <button onClick={onClose} className="text-[#8a9a8e] bg-white/5 hover:bg-white/10 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
@@ -201,7 +196,6 @@ const officialAway = match.score?.regularTime?.away ?? match.score?.fullTime?.aw
           </button>
         </div>
 
-        {/* Barra de Resumo (Totais) */}
         <div className="flex items-center gap-3 px-5 py-3 border-b border-white/5 flex-wrap shrink-0" style={{ background: "#111" }}>
           <div className="flex items-center gap-2 mr-2">
             <span className="text-[24px] font-black text-[#4edea3] leading-none">{totalPoints}</span>
@@ -220,19 +214,15 @@ const officialAway = match.score?.regularTime?.away ?? match.score?.fullTime?.aw
           </div>
         </div>
 
-        {/* 2. SCROLL INVISÍVEL */}
         <div className="overflow-y-auto divide-y divide-white/5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {matchDetails.length === 0 ? (
-            <div className="py-12 text-center text-[#8a9a8e] text-[13px]">Nenhum jogo disponível hoje.</div>
+            <div className="py-12 text-center text-[#8a9a8e] text-[13px]">Nenhum jogo disponível para esta data.</div>
           ) : (
-            // AQUI ESTÁ A CORREÇÃO PRINCIPAL QUE TRAVAVA O BUILD
             matchDetails.map((item: MatchDetailItem, idx: number) => {
               const { match, pred, scored, hasOfficialScore, officialHome, officialAway, showPrediction } = item;
               
               return (
                 <div key={idx} className="px-5 py-4 hover:bg-white/5 transition-colors">
-                  
-                  {/* Linha dos Times vs Placar Oficial */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2 text-[13px] font-semibold text-[#e5e2e1] flex-1">
                       <span className="text-[18px]">{match.home_flag?.startsWith("http") ? <img src={match.home_flag} className="w-5 h-5 object-contain" /> : (match.home_flag || "🏳️")}</span>
@@ -255,7 +245,6 @@ const officialAway = match.score?.regularTime?.away ?? match.score?.fullTime?.aw
                     </div>
                   </div>
 
-                  {/* Linha do Palpite e Avaliação */}
                   <div className="flex items-center justify-between mt-2 bg-black/20 p-2.5 rounded-xl border border-white/5">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-bold text-[#8a9a8e] uppercase tracking-wider">Palpite:</span>
@@ -306,17 +295,18 @@ interface LiveRankingProps {
   predictions: Prediction[];
   liveMatches: Match[];
   dbRanking: User[];
+  selectedDate: Date; // 2. RECEBE A DATA DO PAI
 }
 
-export default function LiveRanking({ user, predictions, liveMatches, dbRanking }: LiveRankingProps) {
+export default function LiveRanking({ user, predictions, liveMatches, dbRanking, selectedDate }: LiveRankingProps) {
   const [selectedMember, setSelectedMember] = useState<(User & { points?: number }) | null>(null);
 
   const liveLeaderboard = useMemo(() => {
-    if (!predictions || !liveMatches) return [];
+    if (!predictions || !liveMatches || !selectedDate) return [];
 
     const rankingMap: Record<string, User & { points: number }> = {};
 
-    // 1. Preenche o ranking inicial com os dados consolidados do Supabase
+    // 1. A SUA LÓGICA MANTIDA: Usa o DB como base confiável
     if (dbRanking) {
       dbRanking.forEach((u) => {
         rankingMap[u.id] = {
@@ -328,28 +318,43 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
       });
     }
 
-    // 2. Calcula pontos em tempo real dos jogos exibidos na tela
+    const selDateMs = new Date(selectedDate.toDateString()).getTime();
+
+    // 2. A MÁGICA: Ajuste Temporal (Viagem no tempo) + Cálculo Ao Vivo
     predictions.forEach((p) => {
       const match = liveMatches.find((m) => String(m.id) === String(p.match_id));
+      if (!match) return;
 
-      if (match && (match.status === "IN_PLAY" || match.status === "FINISHED" || match.status === "PAUSED")) {
+      const matchDateStr = match.utcDate || match.date || match.match_date;
+      if (!matchDateStr) return;
+
+      const matchDateMs = new Date(new Date(matchDateStr).toDateString()).getTime();
+
+      if (!rankingMap[p.user_id]) {
+        rankingMap[p.user_id] = { id: p.user_id, name: "Competidor", avatar_url: "", points: 0 };
+      }
+
+      // REGRA DE VIAGEM NO TEMPO: 
+      // Se o jogo aconteceu DEPOIS da data que você selecionou no calendário,
+      // nós SUBTRAÍMOS os pontos dele do seu Total, para você ver o ranking como ele era no passado.
+      if (matchDateMs > selDateMs) {
+        const pointsAlreadySaved = p.points || 0;
+        rankingMap[p.user_id].points -= pointsAlreadySaved;
+      }
+      // A SUA LÓGICA DE DELTA: 
+      // Se o jogo pertence ao dia selecionado (ou antes) e está rolando, aplicamos o Delta do ao vivo.
+      else if (match.status === "IN_PLAY" || match.status === "FINISHED" || match.status === "PAUSED") {
         const officialHome = match.score?.regularTime?.home ?? match.score?.fullTime?.home ?? null;
         const officialAway = match.score?.regularTime?.away ?? match.score?.fullTime?.away ?? null;
 
-        
         let calculatedPoints = 0;
         if (officialHome != null && officialAway != null && p.home_score != null && p.away_score != null) {
           const scored = getMatchPoints(officialHome, officialAway, p.home_score, p.away_score);
           calculatedPoints = scored.pts;
         }
 
-        // Subtrai os pontos já processados pelo banco (se houver) para evitar soma dupla
         const pointsAlreadySaved = p.points || 0;
         const pointsToAdd = calculatedPoints - pointsAlreadySaved;
-
-        if (!rankingMap[p.user_id]) {
-          rankingMap[p.user_id] = { id: p.user_id, name: "Competidor", avatar_url: "", points: 0 };
-        }
 
         rankingMap[p.user_id].points += pointsToAdd;
       }
@@ -357,7 +362,7 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
 
     // 3. Ordena do 1º colocado ao último
     return Object.values(rankingMap).sort((a, b) => b.points - a.points);
-  }, [dbRanking, predictions, liveMatches]);
+  }, [dbRanking, predictions, liveMatches, selectedDate]);
 
   return (
     <>
@@ -404,7 +409,6 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
         </div>
       </div>
 
-      {/* Renderiza o Modal se houver um membro selecionado */}
       {selectedMember && (
         <MemberDetailModal 
           member={selectedMember} 
@@ -412,9 +416,9 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking 
           matches={liveMatches} 
           predictions={predictions} 
           onClose={() => setSelectedMember(null)} 
+          selectedDate={selectedDate} // 3. A DATA SEGUE PARA O MODAL
         />
       )}
     </>
   );
 }
-
