@@ -238,7 +238,7 @@ export default function Ranking() {
           <div className="absolute -right-6 -top-6 w-24 h-24 bg-[#ffb95f]/10 rounded-full blur-2xl"></div>
 
           <p className="text-[11px] text-[#8a9a8e] mb-3 relative z-10 font-medium">
-            Recorde em um único dia
+            Maior pontuação em um único dia
           </p>
 
           {topDailyScorer ? (
