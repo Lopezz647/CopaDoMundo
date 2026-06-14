@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import { Loader2 } from "lucide-react";
@@ -111,23 +110,29 @@ export default function Ranking() {
         }
       });
 
-      // Usa matchday para os grupos, ou stage para o mata-mata como chave de agrupamento
-      const roundKeys = Array.from(new Set(filteredMatches.map(m => m.matchday ? `MD_${m.matchday}` : `STG_${m.stage}`)));
+      // CORREÇÃO: Agrupa os jogos pelo dia exato no calendário (ex: "Mon Jun 12 2026")
+      const matchesByDate: Record<string, any[]> = {};
+      
+      finishedMatches.forEach(m => {
+        const dateStr = new Date(m.utcDate || m.match_date || m.date).toDateString();
+        if (!matchesByDate[dateStr]) matchesByDate[dateStr] = [];
+        matchesByDate[dateStr].push(m);
+      });
+
       let maxRound = 0;
       
-      roundKeys.forEach(key => {
-        // Filtra os jogos que pertencem a esta chave
-        const roundMatches = finishedMatches.filter(m => (m.matchday ? `MD_${m.matchday}` : `STG_${m.stage}`) === key);
-        let roundPts = 0;
+      // Verifica cada dia individualmente para achar o recorde diário do usuário
+      Object.values(matchesByDate).forEach(dayMatches => {
+        let dayPts = 0;
         
-        roundMatches.forEach(match => {
+        dayMatches.forEach(match => {
           const pred = predMap[match.id];
           if (pred && pred.points !== null && pred.points !== undefined) {
-            roundPts += pred.points;
+            dayPts += pred.points;
           }
         });
         
-        if (roundPts > maxRound) maxRound = roundPts;
+        if (dayPts > maxRound) maxRound = dayPts;
       });
 
       return {
@@ -146,8 +151,15 @@ export default function Ranking() {
   }, [ranked, filterPoints]);
 
   const maxPhasePoints = ranked.length > 0 ? Math.max(...ranked.map(u => u.totalPoints)) : 0;
-  const maxRoundPoints = ranked.length > 0 ? Math.max(...ranked.map(u => u.maxRound)) : 0;
   const topScorer = ranked.length > 0 && ranked[0].totalPoints > 0 ? ranked[0] : null;
+
+  // Descobre quem é o dono do recorde diário (o que fez mais pontos em 1 dia)
+  const topDailyScorer = useMemo(() => {
+    if (ranked.length === 0) return null;
+    // Clona e ordena a lista baseando-se apenas no recorde do dia
+    const sortedByDaily = [...ranked].sort((a, b) => b.maxRound - a.maxRound);
+    return sortedByDaily[0].maxRound > 0 ? sortedByDaily[0] : null;
+  }, [ranked]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-5 pb-10 mt-6">
@@ -186,21 +198,77 @@ export default function Ranking() {
       )}
 
       {/* Painel de Estatísticas */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl border border-white/5 p-4" style={{ background: "#181818" }}>
-          <p className="text-[11px] text-[#8a9a8e] mb-1">
-            {selectedPhase === "all" ? "Maior pontuação geral acumulada" : "Maior pontuação nesta fase"}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        
+        {/* Card 1: Líder da Fase/Geral */}
+        <div className="rounded-xl border border-white/5 p-4 flex flex-col justify-center relative overflow-hidden" style={{ background: "#181818" }}>
+          {/* Efeito de brilho de fundo */}
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-[#4edea3]/10 rounded-full blur-2xl"></div>
+
+          <p className="text-[11px] text-[#8a9a8e] mb-3 relative z-10 font-medium">
+            {selectedPhase === "all" ? "Líder Geral em Pontos" : "Líder de Pontos nesta fase"}
           </p>
-          <p className="text-[24px] font-black text-[#4edea3]">
-            {maxPhasePoints} <span className="text-[13px] font-normal text-[#8a9a8e]">pts</span>
-          </p>
+
+          {topScorer ? (
+             <div className="flex items-center gap-3 relative z-10">
+               <div className="w-10 h-10 rounded-full flex items-center justify-center text-[14px] font-bold overflow-hidden flex-shrink-0 shadow-[0_0_15px_rgba(78,222,163,0.15)]" style={{ background: "rgba(78,222,163,0.15)", color: "#4edea3", border: "1px solid rgba(78,222,163,0.3)" }}>
+                 {topScorer.avatar_url ? (
+                   <img src={topScorer.avatar_url} alt={topScorer.name} className="w-full h-full object-cover" />
+                 ) : (
+                   topScorer.name?.charAt(0).toUpperCase()
+                 )}
+               </div>
+               <div className="flex flex-col min-w-0">
+                 <span className="text-[13px] font-bold text-[#e5e2e1] truncate pr-2">{topScorer.name}</span>
+                 <p className="text-[18px] font-black text-[#4edea3] leading-none mt-0.5">
+                   {topScorer.totalPoints} <span className="text-[11px] font-medium text-[#8a9a8e]">pts</span>
+                 </p>
+               </div>
+             </div>
+          ) : (
+             <p className="text-[20px] font-black text-[#4edea3] relative z-10">
+               0 <span className="text-[13px] font-normal text-[#8a9a8e]">pts</span>
+             </p>
+          )}
         </div>
-        <div className="rounded-xl border border-white/5 p-4" style={{ background: "#181818" }}>
-          <p className="text-[11px] text-[#8a9a8e] mb-1">Maior pontuação em um único dia</p>
-          <p className="text-[24px] font-black text-[#ffb95f]">
-            {maxRoundPoints} <span className="text-[13px] font-normal text-[#8a9a8e]">pts</span>
+
+        {/* Card 2: Recorde Diário Destacado */}
+        <div className="rounded-xl border border-white/5 p-4 flex flex-col justify-center relative overflow-hidden" style={{ background: "#181818" }}>
+          {/* Efeito de brilho de fundo laranja */}
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-[#ffb95f]/10 rounded-full blur-2xl"></div>
+
+          <p className="text-[11px] text-[#8a9a8e] mb-3 relative z-10 font-medium">
+            Recorde em um único dia
           </p>
+
+          {topDailyScorer ? (
+             <div className="flex items-center gap-3 relative z-10">
+               <div className="w-10 h-10 rounded-full flex items-center justify-center text-[14px] font-bold overflow-hidden flex-shrink-0 shadow-[0_0_15px_rgba(255,185,95,0.15)]" style={{ background: "rgba(255,185,95,0.15)", color: "#ffb95f", border: "1px solid rgba(255,185,95,0.3)" }}>
+                 {topDailyScorer.avatar_url ? (
+                   <img src={topDailyScorer.avatar_url} alt={topDailyScorer.name} className="w-full h-full object-cover" />
+                 ) : (
+                   topDailyScorer.name?.charAt(0).toUpperCase()
+                 )}
+               </div>
+               <div className="flex flex-col min-w-0">
+                 <span className="text-[13px] font-bold text-[#e5e2e1] truncate pr-2">{topDailyScorer.name}</span>
+                 <div className="flex items-center gap-2 mt-0.5">
+                   <p className="text-[18px] font-black text-[#ffb95f] leading-none">
+                     {topDailyScorer.maxRound} <span className="text-[11px] font-medium text-[#8a9a8e]">pts</span>
+                   </p>
+                   <span className="text-[9px] font-black bg-[#ffb95f]/10 text-[#ffb95f] px-1.5 py-0.5 rounded border border-[#ffb95f]/20 uppercase tracking-wider">
+                     🔥 Recorde
+                   </span>
+                 </div>
+               </div>
+             </div>
+          ) : (
+             <p className="text-[20px] font-black text-[#ffb95f] relative z-10">
+               0 <span className="text-[13px] font-normal text-[#8a9a8e]">pts</span>
+             </p>
+          )}
         </div>
+
       </div>
 
       {/* Filtros Avançados */}
