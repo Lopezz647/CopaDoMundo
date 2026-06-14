@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useState, useMemo, useEffect } from "react";
 import { Loader2 } from "lucide-react";
@@ -16,7 +17,6 @@ const WORLD_CUP_PHASES = [
   { id: "SEMI_FINALS", label: "Semifinal" },
   { id: "FINAL", label: "Final" }
 ];
-
 
 function MedalIcon({ rank }: { rank: number }) {
   if (rank === 1) return <span className="text-[16px]">🥇</span>;
@@ -111,7 +111,7 @@ export default function Ranking() {
         }
       });
 
-            // Usa matchday para os grupos, ou stage para o mata-mata como chave de agrupamento
+      // Usa matchday para os grupos, ou stage para o mata-mata como chave de agrupamento
       const roundKeys = Array.from(new Set(filteredMatches.map(m => m.matchday ? `MD_${m.matchday}` : `STG_${m.stage}`)));
       let maxRound = 0;
       
@@ -272,93 +272,100 @@ export default function Ranking() {
         </div>
       </div>
 
-      {/* Tabela do Ranking Reordenável */}
+      {/* Tabela do Ranking Reordenável com Scroll Horizontal para Mobile */}
       <div className="rounded-xl border border-white/5 overflow-hidden" style={{ background: "#181818" }}>
-        <div
-          className="grid px-4 py-3 border-b border-white/5 text-[11px] text-[#8a9a8e] font-semibold uppercase tracking-wider"
-          style={{ gridTemplateColumns: "40px 1fr 60px 60px 60px 60px 60px 60px" }}
-        >
-          <span>#</span>
-          <span>Jogador</span>
-          <span className="text-center">Pts</span>
-          <span className="text-center text-[#4edea3]">10</span>
-          <span className="text-center text-[#64a0ff]">7</span>
-          <span className="text-center text-[#ffb95f]">5</span>
-          <span className="text-center text-[#b482ff]">2</span>
-          <span className="text-center text-[#ff6464]">0</span>
-        </div>
+        
+        {/* A MÁGICA ESTÁ NESTAS DUAS DIVS ABAIXO 👇 */}
+        <div className="w-full overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="min-w-[650px] flex flex-col">
+            
+            <div
+              className="grid px-4 py-3 border-b border-white/5 text-[11px] text-[#8a9a8e] font-semibold uppercase tracking-wider"
+              style={{ gridTemplateColumns: "40px 1fr 60px 60px 60px 60px 60px 60px" }}
+            >
+              <span>#</span>
+              <span>Jogador</span>
+              <span className="text-center">Pts</span>
+              <span className="text-center text-[#4edea3]">10</span>
+              <span className="text-center text-[#64a0ff]">7</span>
+              <span className="text-center text-[#ffb95f]">5</span>
+              <span className="text-center text-[#b482ff]">2</span>
+              <span className="text-center text-[#ff6464]">0</span>
+            </div>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin text-[#4edea3]" />
-          </div>
-        ) : displayedRanked.length === 0 ? (
-          <div className="py-10 text-center text-[#8a9a8e] text-[13px]">Nenhum resultado encontrado para o filtro atual.</div>
-        ) : (
-          displayedRanked.map((member, idx) => {
-            const isYou = currentUser && member.id === currentUser.id;
-            const rank = ranked.findIndex(m => m.id === member.id) + 1;
-            return (
-              <div
-                key={member.id}
-                className="grid px-4 py-3 items-center border-b border-white/5 last:border-0 transition-colors hover:bg-white/5"
-                style={{
-                  gridTemplateColumns: "40px 1fr 60px 60px 60px 60px 60px 60px",
-                  background: isYou ? "rgba(78,222,163,0.04)" : "transparent",
-                }}
-              >
-                <div className="flex items-center justify-center">
-                  <MedalIcon rank={rank} />
-                </div>
-
-                <div className="flex items-center gap-2 min-w-0">
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0 overflow-hidden"
-                    style={{ background: "rgba(78,222,163,0.12)", color: "#4edea3", border: "1px solid rgba(78,222,163,0.2)" }}
-                  >
-                    {member.avatar_url ? (
-                      <img src={member.avatar_url} alt={member.name} className="w-full h-full object-cover" />
-                    ) : (
-                      member.name?.charAt(0).toUpperCase() || "?"
-                    )}
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[13px] font-semibold text-[#e5e2e1] truncate">{member.name || "Membro"}</span>
-                    {isYou && (
-                      <span
-                        className="text-[9px] font-bold px-1.5 py-0.5 mt-0.5 rounded self-start"
-                        style={{ background: "rgba(78,222,163,0.15)", color: "#4edea3" }}
-                      >
-                        VOCÊ
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="text-center">
-                  <span className="text-[15px] font-black text-[#e5e2e1]">{member.totalPoints}</span>
-                </div>
-
-                {POINT_VALUES.map(p => {
-                  const colors: Record<number, string> = { 10: "#4edea3", 7: "#64a0ff", 5: "#ffb95f", 2: "#b482ff", 0: "#ff6464" };
-                  return (
-                    <div key={p} className="text-center">
-                      <span
-                        className="text-[13px] font-bold"
-                        style={{
-                          color: colors[p],
-                          opacity: (member.counters[p] || 0) === 0 ? 0.3 : 1,
-                        }}
-                      >
-                        {member.counters[p] || 0}
-                      </span>
-                    </div>
-                  );
-                })}
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-[#4edea3]" />
               </div>
-            );
-          })
-        )}
+            ) : displayedRanked.length === 0 ? (
+              <div className="py-10 text-center text-[#8a9a8e] text-[13px]">Nenhum resultado encontrado para o filtro atual.</div>
+            ) : (
+              displayedRanked.map((member, idx) => {
+                const isYou = currentUser && member.id === currentUser.id;
+                const rank = ranked.findIndex(m => m.id === member.id) + 1;
+                return (
+                  <div
+                    key={member.id}
+                    className="grid px-4 py-3 items-center border-b border-white/5 last:border-0 transition-colors hover:bg-white/5"
+                    style={{
+                      gridTemplateColumns: "40px 1fr 60px 60px 60px 60px 60px 60px",
+                      background: isYou ? "rgba(78,222,163,0.04)" : "transparent",
+                    }}
+                  >
+                    <div className="flex items-center justify-center">
+                      <MedalIcon rank={rank} />
+                    </div>
+
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0 overflow-hidden"
+                        style={{ background: "rgba(78,222,163,0.12)", color: "#4edea3", border: "1px solid rgba(78,222,163,0.2)" }}
+                      >
+                        {member.avatar_url ? (
+                          <img src={member.avatar_url} alt={member.name} className="w-full h-full object-cover" />
+                        ) : (
+                          member.name?.charAt(0).toUpperCase() || "?"
+                        )}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[13px] font-semibold text-[#e5e2e1] truncate">{member.name || "Membro"}</span>
+                        {isYou && (
+                          <span
+                            className="text-[9px] font-bold px-1.5 py-0.5 mt-0.5 rounded self-start"
+                            style={{ background: "rgba(78,222,163,0.15)", color: "#4edea3" }}
+                          >
+                            VOCÊ
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="text-center">
+                      <span className="text-[15px] font-black text-[#e5e2e1]">{member.totalPoints}</span>
+                    </div>
+
+                    {POINT_VALUES.map(p => {
+                      const colors: Record<number, string> = { 10: "#4edea3", 7: "#64a0ff", 5: "#ffb95f", 2: "#b482ff", 0: "#ff6464" };
+                      return (
+                        <div key={p} className="text-center">
+                          <span
+                            className="text-[13px] font-bold"
+                            style={{
+                              color: colors[p],
+                              opacity: (member.counters[p] || 0) === 0 ? 0.3 : 1,
+                            }}
+                          >
+                            {member.counters[p] || 0}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
