@@ -142,7 +142,37 @@ export default function Ranking() {
         maxRound,
         predCount: userPreds.length,
       };
-    }).sort((a, b) => b.totalPoints - a.totalPoints);
+    }).sort((a, b) => {
+      // CASCATA DE DESEMPATE
+      
+      // 1. Critério principal: Pontuação Total
+      if (b.totalPoints !== a.totalPoints) {
+        return b.totalPoints - a.totalPoints;
+      }
+      
+      // 2. Primeiro Desempate: Placares Exatos (10 pts)
+      if ((b.counters[10] || 0) !== (a.counters[10] || 0)) {
+        return (b.counters[10] || 0) - (a.counters[10] || 0);
+      }
+      
+      // 3. Segundo Desempate: Vencedor + 1 Placar (7 pts)
+      if ((b.counters[7] || 0) !== (a.counters[7] || 0)) {
+        return (b.counters[7] || 0) - (a.counters[7] || 0);
+      }
+      
+      // 4. Terceiro Desempate: Vencedor ou Empate (5 pts)
+      if ((b.counters[5] || 0) !== (a.counters[5] || 0)) {
+        return (b.counters[5] || 0) - (a.counters[5] || 0);
+      }
+      
+      // 5. Quarto Desempate: Acertou 1 placar (2 pts)
+      if ((b.counters[2] || 0) !== (a.counters[2] || 0)) {
+        return (b.counters[2] || 0) - (a.counters[2] || 0);
+      }
+
+      // Se empatar em absolutamente tudo, mantém a ordem atual
+      return 0;
+    });
   }, [allUsers, allPredictions, finishedMatches, selectedPhase, filteredMatches]);
 
   const displayedRanked = useMemo(() => {
