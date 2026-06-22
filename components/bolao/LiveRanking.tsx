@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { traduzirTime } from "@/lib/utils";
 
 // ==========================================
 // AVALIADOR DE PONTOS (Regras Oficiais)
@@ -226,7 +227,7 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser,
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2 text-[13px] font-semibold text-[#e5e2e1] flex-1">
                       <span className="text-[18px]">{match.home_flag?.startsWith("http") ? <img src={match.home_flag} className="w-5 h-5 object-contain" /> : (match.home_flag || "🏳️")}</span>
-                      <span className="truncate">{match.homeTeam?.name || match.home_team || "Mandante"}</span>
+                      <span className="truncate">{traduzirTime(match.homeTeam?.name || match.home_team || "Mandante")}</span>
                     </div>
                     
                     <div className="flex items-center justify-center min-w-[70px] bg-black/40 px-3 py-1 rounded-lg border border-white/5">
@@ -240,7 +241,7 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser,
                     </div>
 
                     <div className="flex items-center justify-end gap-2 text-[13px] font-semibold text-[#e5e2e1] flex-1">
-                      <span className="truncate text-right">{match.awayTeam?.name || match.away_team || "Visitante"}</span>
+                      <span className="truncate text-right">{traduzirTime(match.awayTeam?.name || match.away_team || "Visitante")}</span>
                       <span className="text-[18px]">{match.away_flag?.startsWith("http") ? <img src={match.away_flag} className="w-5 h-5 object-contain" /> : (match.away_flag || "🏳️")}</span>
                     </div>
                   </div>
