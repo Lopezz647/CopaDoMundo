@@ -240,7 +240,7 @@ export default function Ranking() {
           </p>
 
           {topScorer ? (
-             <div className="flex items-center gap-3 relative z-10">
+             <div key={`leader-${topScorer.id}`} className="flex items-center gap-3 relative z-10 animate-in fade-in">
                <div className="w-10 h-10 rounded-full flex items-center justify-center text-[14px] font-bold overflow-hidden flex-shrink-0 shadow-[0_0_15px_rgba(78,222,163,0.15)]" style={{ background: "rgba(78,222,163,0.15)", color: "#4edea3", border: "1px solid rgba(78,222,163,0.3)" }}>
                  {topScorer.avatar_url ? (
                    <img src={topScorer.avatar_url} alt={topScorer.name} className="w-full h-full object-cover" />
@@ -272,7 +272,7 @@ export default function Ranking() {
           </p>
 
           {topDailyScorer ? (
-             <div className="flex items-center gap-3 relative z-10">
+             <div key={`daily-${topDailyScorer.id}`} className="flex items-center gap-3 relative z-10 animate-in fade-in">
                <div className="w-10 h-10 rounded-full flex items-center justify-center text-[14px] font-bold overflow-hidden flex-shrink-0 shadow-[0_0_15px_rgba(255,185,95,0.15)]" style={{ background: "rgba(255,185,95,0.15)", color: "#ffb95f", border: "1px solid rgba(255,185,95,0.3)" }}>
                  {topDailyScorer.avatar_url ? (
                    <img src={topDailyScorer.avatar_url} alt={topDailyScorer.name} className="w-full h-full object-cover" />
