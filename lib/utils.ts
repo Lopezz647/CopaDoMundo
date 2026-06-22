@@ -37,7 +37,7 @@ export const TIME_TRADUCOES: Record<string, string> = {
   "Ukraine": "Ucrânia",
   "Austria": "Áustria",
   "Cape Verde Islands": "Cabo Verde",
-  "Bosnia-Herzegovinas": "Bósnia",
+  "Bosnia-Herzegovina": "Bósnia",
   "Czechia": "República Tcheca",
   "Czech Republic": "República Tcheca",
   "Hungary": "Hungria",
