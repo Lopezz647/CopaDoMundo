@@ -214,7 +214,7 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser,
           </div>
         </div>
 
-        <div className="overflow-y-auto divide-y divide-white/5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+       <div className="overflow-y-auto divide-y divide-white/5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/10 hover:[&::-webkit-scrollbar-thumb]:bg-white/20 transition-colors">
           {matchDetails.length === 0 ? (
             <div className="py-12 text-center text-[#8a9a8e] text-[13px]">Nenhum jogo disponível para esta data.</div>
           ) : (
