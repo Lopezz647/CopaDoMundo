@@ -3,6 +3,7 @@ import PredictionsModal from "./PredictionsModal";
 import { validatePrediction } from '@/lib/validators';
 import { isMatchTimeLocked, formatMatchTime } from '@/lib/timezone-utils';
 import { getMatchState } from '@/lib/match-status';
+import { traduzirTime } from "@/lib/utils";
 
 // --- INTERFACES DE TIPAGEM ---
 interface MatchScore {
@@ -236,13 +237,13 @@ if ('errors' in validation) {
             <div className="flex flex-col items-center gap-3 w-[120px]">
               <div className="w-14 h-10 flex items-center justify-center text-4xl leading-none">
                 {match.home_flag?.startsWith("http") ? (
-                  <img src={match.home_flag} alt={match.home_team} className="max-h-full max-w-full object-contain" />
+                  <img src={match.home_flag} alt={traduzirTime(match.home_team)} className="max-h-full max-w-full object-contain" />
                 ) : (
                   match.home_flag || "🏳️"
                 )}
               </div>
               <span className="text-[13px] font-semibold text-[#e5e2e1] text-center line-clamp-2 min-h-[32px] flex items-center justify-center leading-tight">
-                {match.home_team}
+                {traduzirTime(match.home_team)}
               </span>
               
               {!showRealScore && (
@@ -312,13 +313,13 @@ if ('errors' in validation) {
             <div className="flex flex-col items-center gap-3 w-[120px]">
               <div className="w-14 h-10 flex items-center justify-center text-4xl leading-none">
                 {match.away_flag?.startsWith("http") ? (
-                  <img src={match.away_flag} alt={match.away_team} className="max-h-full max-w-full object-contain" />
+                  <img src={match.away_flag} alt={traduzirTime(match.away_team)} className="max-h-full max-w-full object-contain" />
                 ) : (
                   match.away_flag || "🏳️"
                 )}
               </div>
               <span className="text-[13px] font-semibold text-[#e5e2e1] text-center line-clamp-2 min-h-[32px] flex items-center justify-center leading-tight">
-                {match.away_team}
+                {traduzirTime(match.away_team)}
               </span>
               
               {!showRealScore && (
