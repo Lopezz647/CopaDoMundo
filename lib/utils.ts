@@ -44,7 +44,7 @@ export const TIME_TRADUCOES: Record<string, string> = {
   "Turkey": "Turquia",
   "Türkiye": "Turquia",
   "Slovakia": "Eslováquia",
-  "Jordan": "Jordânia"
+  "Jordan": "Jordânia",
   "Romania": "Romênia",
   "Greece": "Grécia",
   "Republic of Ireland": "Irlanda",
