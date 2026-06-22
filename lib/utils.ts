@@ -7,7 +7,6 @@ export function cn(...inputs: ClassValue[]) {
 
 // === DICIONÁRIO DE TRADUÇÃO GLOBAL ===
 export const TIME_TRADUCOES: Record<string, string> = {
-  // América do Sul (CONMEBOL)
   "Argentina": "Argentina",
   "Brazil": "Brasil",
   "Uruguay": "Uruguai",
@@ -18,14 +17,12 @@ export const TIME_TRADUCOES: Record<string, string> = {
   "Paraguay": "Paraguai",
   "Venezuela": "Venezuela",
   "Bolivia": "Bolívia",
-
-  // Europa (UEFA)
   "France": "França",
   "Germany": "Alemanha",
   "Spain": "Espanha",
   "England": "Inglaterra",
   "Portugal": "Portugal",
-  "Netherlands": "Países Baixos",
+  "Netherlands": "Holanda",
   "Belgium": "Bélgica",
   "Croatia": "Croácia",
   "Italy": "Itália",
@@ -39,17 +36,18 @@ export const TIME_TRADUCOES: Record<string, string> = {
   "Scotland": "Escócia",
   "Ukraine": "Ucrânia",
   "Austria": "Áustria",
-  "Czechia": "Chéquia",
+  "Cape Verde Islands": "Cabo Verde",
+  "Bosnia-Herzegovinas": "Bósnia",
+  "Czechia": "República Tcheca",
   "Czech Republic": "República Tcheca",
   "Hungary": "Hungria",
   "Turkey": "Turquia",
   "Türkiye": "Turquia",
   "Slovakia": "Eslováquia",
+  "Jordan": "Jordânia"
   "Romania": "Romênia",
   "Greece": "Grécia",
   "Republic of Ireland": "Irlanda",
-
-  // América do Norte, Central e Caribe (CONCACAF)
   "USA": "Estados Unidos",
   "United States": "Estados Unidos",
   "Mexico": "México",
@@ -61,8 +59,6 @@ export const TIME_TRADUCOES: Record<string, string> = {
   "El Salvador": "El Salvador",
   "Haiti": "Haiti",
   "Trinidad and Tobago": "Trinidad e Tobago",
-
-  // África (CAF)
   "Morocco": "Marrocos",
   "Senegal": "Senegal",
   "Cameroon": "Camarões",
@@ -76,15 +72,13 @@ export const TIME_TRADUCOES: Record<string, string> = {
   "Mali": "Mali",
   "South Africa": "África do Sul",
   "Burkina Faso": "Burkina Faso",
-  "DR Congo": "RD Congo",
-
-  // Ásia (AFC)
+  "Congo DR": "RD Congo",
   "Japan": "Japão",
   "South Korea": "Coreia do Sul",
   "Korea Republic": "Coreia do Sul",
   "Saudi Arabia": "Arábia Saudita",
   "Iran": "Irã",
-  "Australia": "Austrália", // Joga as eliminatórias pela Ásia
+  "Australia": "Austrália", 
   "Qatar": "Catar",
   "United Arab Emirates": "Emirados Árabes Unidos",
   "UAE": "Emirados Árabes Unidos",
