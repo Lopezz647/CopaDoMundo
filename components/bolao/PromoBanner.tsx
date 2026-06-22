@@ -2,10 +2,55 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Loader2, CalendarClock } from "lucide-react";
 
+// Dicionário de Tradução dos Times (Inglês -> Português)
+const TIME_TRADUCOES: Record<string, string> = {
+  "Argentina": "Argentina",
+  "Brazil": "Brasil",
+  "France": "França",
+  "Germany": "Alemanha",
+  "Spain": "Espanha",
+  "England": "Inglaterra",
+  "Portugal": "Portugal",
+  "Netherlands": "Países Baixos",
+  "Belgium": "Bélgica",
+  "Croatia": "Croácia",
+  "Uruguay": "Uruguai",
+  "Mexico": "México",
+  "Morocco": "Marrocos",
+  "Japan": "Japão",
+  "South Korea": "Coreia do Sul",
+  "Switzerland": "Suíça",
+  "USA": "EUA",
+  "United States": "Estados Unidos",
+  "Senegal": "Senegal",
+  "Ecuador": "Equador",
+  "Qatar": "Catar",
+  "Saudi Arabia": "Arábia Saudita",
+  "Iran": "Irã",
+  "Australia": "Austrália",
+  "Tunisia": "Tunísia",
+  "Poland": "Polônia",
+  "Denmark": "Dinamarca",
+  "Canada": "Canadá",
+  "Costa Rica": "Costa Rica",
+  "Ghana": "Gana",
+  "Cameroon": "Camarões",
+  "Serbia": "Sérvia",
+  "Wales": "País de Gales"
+};
+
+// Função auxiliar para traduzir ou manter o nome original
+function traduzirTime(nomeTime: string | undefined): string {
+  if (!nomeTime) return "A Definir";
+  return TIME_TRADUCOES[nomeTime] || nomeTime;
+}
+
+// Fases com o "16 avos" incluído
 const WORLD_CUP_PHASES = [
   { id: "ROUND_1", label: "Rodada 1" },
   { id: "ROUND_2", label: "Rodada 2" },
   { id: "ROUND_3", label: "Rodada 3" },
+  { id: "LAST_32", label: "16 avos" },
   { id: "LAST_16", label: "Oitavas" },
   { id: "QUARTER_FINALS", label: "Quartas" },
   { id: "SEMI_FINALS", label: "Semifinal" },
@@ -72,7 +117,7 @@ export default function PromoBanner() {
 
   return (
     <>
-      {/* SEU BANNER ORIGINAL INTACTO */}
+      {/* BANNER PRINCIPAL */}
       <div
         className="rounded-xl overflow-hidden relative"
         style={{ background: "linear-gradient(135deg, #1a2e24 0%, #0f1f17 60%, #0a0a0a 100%)", border: "1px solid rgba(78,222,163,0.15)" }}
@@ -80,20 +125,20 @@ export default function PromoBanner() {
         <div className="relative p-5 flex flex-col md:flex-row items-center justify-between gap-5">
           <div className="flex items-center gap-5 w-full md:w-auto">
             {/* FIFA-style trophy circle */}
-<div
-  className="w-[72px] h-[72px] rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
-  style={{
-    background: "radial-gradient(circle, #1e3d2e 0%, #0d1f16 100%)",
-    border: "2px solid rgba(78,222,163,0.25)",
-    boxShadow: "0 0 20px rgba(78,222,163,0.1)"
-  }}
->
-  <img
-    src="/logo-copa.png"
-    alt="Troféu Copa do Mundo"
-    className="w-full h-full object-cover"
-  />
-</div>
+            <div
+              className="w-[72px] h-[72px] rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
+              style={{
+                background: "radial-gradient(circle, #1e3d2e 0%, #0d1f16 100%)",
+                border: "2px solid rgba(78,222,163,0.25)",
+                boxShadow: "0 0 20px rgba(78,222,163,0.1)"
+              }}
+            >
+              <img
+                src="/logo-copa.png"
+                alt="Troféu Copa do Mundo"
+                className="w-full h-full object-cover"
+              />
+            </div>
 
             <div className="flex flex-col gap-1.5">
               <h1 className="text-[22px] font-bold text-[#e5e2e1] leading-none">Bolão DRH-1</h1>
@@ -124,7 +169,7 @@ export default function PromoBanner() {
         </div>
       </div>
 
-      {/* MODAL DE TABELA (Carregado direto da API) */}
+      {/* MODAL DE TABELA */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
           <div className="absolute inset-0" onClick={() => setIsModalOpen(false)}></div>
@@ -170,8 +215,8 @@ export default function PromoBanner() {
               </div>
             </div>
 
-            {/* LISTA DE JOGOS */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar-dates bg-[#0a0a0a]">
+            {/* LISTA DE JOGOS (Com Scrollbar Elegante) */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-5 bg-[#0a0a0a] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/10 hover:[&::-webkit-scrollbar-thumb]:bg-white/20 transition-colors">
               {loading ? (
                 <div className="flex flex-col items-center justify-center h-[300px] gap-4">
                   <Loader2 className="w-10 h-10 animate-spin text-[#4edea3]" />
@@ -196,6 +241,10 @@ export default function PromoBanner() {
                     const homeScore = match.score?.fullTime?.home ?? match.score?.regularTime?.home;
                     const awayScore = match.score?.fullTime?.away ?? match.score?.regularTime?.away;
 
+                    // Busca a bandeira tanto do objeto nativo da API quanto do Supabase
+                    const homeCrest = match.homeTeam?.crest || match.home_team_crest;
+                    const awayCrest = match.awayTeam?.crest || match.away_team_crest;
+
                     return (
                       <div key={match.id} className="flex flex-col bg-[#141414] rounded-xl border border-white/5 overflow-hidden shadow-sm hover:border-white/10 transition-colors">
                         
@@ -218,17 +267,19 @@ export default function PromoBanner() {
                         <div className="flex items-center justify-between p-4 gap-4">
                           
                           {/* Time da Casa (Direita) */}
-                          <div className="flex items-center gap-3 flex-1 justify-end">
-                            <span className="font-bold text-[14px] md:text-[15px] text-[#e5e2e1] text-right truncate">{match.homeTeam?.name || match.home_team || "A Definir"}</span>
-                            {match.home_flag ? (
-                              <img src={match.home_flag} alt="flag" className="w-8 h-6 object-contain rounded-sm" />
+                          <div className="flex items-center gap-3 flex-1 justify-end min-w-0">
+                            <span className="font-bold text-[14px] md:text-[15px] text-[#e5e2e1] text-right truncate">
+                              {traduzirTime(match.homeTeam?.name || match.home_team)}
+                            </span>
+                            {homeCrest ? (
+                              <img src={homeCrest} alt="Bandeira Mandante" className="w-8 h-6 object-contain rounded-sm flex-shrink-0" />
                             ) : (
                               <span className="text-[24px]">🏳️</span>
                             )}
                           </div>
                           
                           {/* Placar ou VS */}
-                          <div className="flex items-center justify-center min-w-[70px]">
+                          <div className="flex items-center justify-center min-w-[70px] flex-shrink-0">
                             {(isFinished || isLive) && homeScore != null && awayScore != null ? (
                               <div className="flex items-center gap-2 text-[22px] font-black text-[#4edea3] drop-shadow-[0_0_8px_rgba(78,222,163,0.3)]">
                                 <span>{homeScore}</span>
@@ -241,13 +292,15 @@ export default function PromoBanner() {
                           </div>
                           
                           {/* Time Visitante (Esquerda) */}
-                          <div className="flex items-center gap-3 flex-1 justify-start">
-                            {match.away_flag ? (
-                              <img src={match.away_flag} alt="flag" className="w-8 h-6 object-contain rounded-sm" />
+                          <div className="flex items-center gap-3 flex-1 justify-start min-w-0">
+                            {awayCrest ? (
+                              <img src={awayCrest} alt="Bandeira Visitante" className="w-8 h-6 object-contain rounded-sm flex-shrink-0" />
                             ) : (
                               <span className="text-[24px]">🏳️</span>
                             )}
-                            <span className="font-bold text-[14px] md:text-[15px] text-[#e5e2e1] text-left truncate">{match.awayTeam?.name || match.away_team || "A Definir"}</span>
+                            <span className="font-bold text-[14px] md:text-[15px] text-[#e5e2e1] text-left truncate">
+                              {traduzirTime(match.awayTeam?.name || match.away_team)}
+                            </span>
                           </div>
                           
                         </div>
