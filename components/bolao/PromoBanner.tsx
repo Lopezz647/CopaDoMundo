@@ -1,43 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { X, Loader2, CalendarClock } from "lucide-react";
-
-// Dicionário de Tradução dos Times (Inglês -> Português)
-const TIME_TRADUCOES: Record<string, string> = {
-  "Argentina": "Argentina",
-  "Brazil": "Brasil",
-  "France": "França",
-  "Germany": "Alemanha",
-  "Spain": "Espanha",
-  "England": "Inglaterra",
-  "Portugal": "Portugal",
-  "Netherlands": "Países Baixos",
-  "Belgium": "Bélgica",
-  "Croatia": "Croácia",
-  "Uruguay": "Uruguai",
-  "Mexico": "México",
-  "Morocco": "Marrocos",
-  "Japan": "Japão",
-  "South Korea": "Coreia do Sul",
-  "Switzerland": "Suíça",
-  "USA": "EUA",
-  "United States": "Estados Unidos",
-  "Senegal": "Senegal",
-  "Ecuador": "Equador",
-  "Qatar": "Catar",
-  "Saudi Arabia": "Arábia Saudita",
-  "Iran": "Irã",
-  "Australia": "Austrália",
-  "Tunisia": "Tunísia",
-  "Poland": "Polônia",
-  "Denmark": "Dinamarca",
-  "Canada": "Canadá",
-  "Costa Rica": "Costa Rica",
-  "Ghana": "Gana",
-  "Cameroon": "Camarões",
-  "Serbia": "Sérvia",
-  "Wales": "País de Gales"
-};
+import { traduzirTime } from "@/lib/utils";
 
 // Função auxiliar para traduzir ou manter o nome original
 function traduzirTime(nomeTime: string | undefined): string {
