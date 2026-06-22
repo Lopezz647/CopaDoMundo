@@ -1,13 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { X, Loader2, CalendarClock } from "lucide-react";
-import { traduzirTime } from "@/lib/utils";
-
-// Função auxiliar para traduzir ou manter o nome original
-function traduzirTime(nomeTime: string | undefined): string {
-  if (!nomeTime) return "A Definir";
-  return TIME_TRADUCOES[nomeTime] || nomeTime;
-}
+import { traduzirTime } from "@/lib/utils"
 
 // Fases com o "16 avos" incluído
 const WORLD_CUP_PHASES = [
