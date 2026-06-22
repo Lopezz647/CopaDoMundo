@@ -375,8 +375,7 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking,
           <span className="text-[10px] text-[#8a9a8e] bg-white/5 px-2 py-0.5 rounded border border-white/5 hidden sm:block">Clique para detalhes</span>
         </div>
         
-        <div className="p-2 flex flex-col gap-1 max-h-[500px] overflow-y-auto custom-scrollbar">
-          {liveLeaderboard.length === 0 ? (
+<div className="p-2 flex flex-col gap-1 max-h-[500px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/10 hover:[&::-webkit-scrollbar-thumb]:bg-white/20 transition-colors">          {liveLeaderboard.length === 0 ? (
             <p className="text-[#8a9a8e] text-xs text-center py-6">Nenhum ranking disponível.</p>
           ) : (
             liveLeaderboard.map((member, index) => (
