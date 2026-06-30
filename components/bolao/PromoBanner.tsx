@@ -196,8 +196,8 @@ export default function PromoBanner() {
                     const isFinished = match.status === "FINISHED";
                     const isLive = ["IN_PLAY", "PAUSED", "LIVE", "HT"].includes(match.status);
                     
-                    const homeScore = match.score?.fullTime?.home ?? match.score?.regularTime?.home;
-                    const awayScore = match.score?.fullTime?.away ?? match.score?.regularTime?.away;
+                    const homeScore = match.score?.regularTime?.home ?? match.score?.fullTime?.home;
+                    const awayScore = match.score?.regularTime?.away ?? match.score?.fullTime?.away;
 
                     // Busca a bandeira tanto do objeto nativo da API quanto do Supabase
                     const homeCrest = match.homeTeam?.crest || match.home_team_crest;
