@@ -53,8 +53,8 @@ export async function GET() {
         away_team_crest: match.awayTeam?.crest || null,
         match_date: match.utcDate,
         status: match.status,
-        score_home: match.score?.fullTime?.home ?? match.score?.regularTime?.home ?? null,
-        score_away: match.score?.fullTime?.away ?? match.score?.regularTime?.away ?? null,
+        score_home: match.score?.regularTime?.home ?? match.score?.fullTime?.home ?? null,
+        score_away: match.score?.regularTime?.away ?? match.score?.fullTime?.away ?? null,
         stage: match.stage || null,
         matchday: match.matchday || null,
         last_updated: new Date().toISOString()
