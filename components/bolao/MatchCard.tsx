@@ -170,8 +170,8 @@ if ('errors' in validation) {
     }
   };
 
-  const realHomeScore = match.score?.fullTime?.home ?? match.score?.regularTime?.home;
-  const realAwayScore = match.score?.fullTime?.away ?? match.score?.regularTime?.away;
+  const realHomeScore = match.score?.regularTime?.home ?? match.score?.fullTime?.home;
+  const realAwayScore = match.score?.regularTime?.away ?? match.score?.fullTime?.away;
 
   // 2. CORREÇÃO: Aplicação do NEON azul pulsante no status "isLive"
   let StatusBadge;
