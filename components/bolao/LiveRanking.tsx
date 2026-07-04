@@ -42,11 +42,12 @@ function getMatchPoints(officialHome: number, officialAway: number, predHome: nu
 // COMPONENTE VISUAL: BADGE DE PONTOS
 // ==========================================
 function PointsBadge({ points }: { points: number }) {
+  // CORREÇÃO: Trocado '3' por '2'
   const colors: Record<number, { bg: string; color: string; border: string }> = {
     10: { bg: "rgba(78,222,163,0.18)", color: "#4edea3", border: "rgba(78,222,163,0.35)" },
     7:  { bg: "rgba(100,160,255,0.18)", color: "#64a0ff", border: "rgba(100,160,255,0.35)" },
     5:  { bg: "rgba(255,185,95,0.18)", color: "#ffb95f", border: "rgba(255,185,95,0.35)" },
-    3:  { bg: "rgba(180,130,255,0.18)", color: "#b482ff", border: "rgba(180,130,255,0.35)" },
+    2:  { bg: "rgba(180,130,255,0.18)", color: "#b482ff", border: "rgba(180,130,255,0.35)" },
     0:  { bg: "rgba(255,100,100,0.12)", color: "#ff6464", border: "rgba(255,100,100,0.25)" },
   };
   const c = colors[points] || colors[0];
@@ -55,7 +56,7 @@ function PointsBadge({ points }: { points: number }) {
       className="text-[11px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-sm flex items-center justify-center min-w-[48px]"
       style={{ background: c.bg, color: c.color, border: `1px solid ${c.border}` }}
     >
-      {points !== null ? `${points} pts` : "—"}
+      {points !== null && points !== undefined ? `${points} pts` : "—"}
     </span>
   );
 }
@@ -115,7 +116,7 @@ interface MemberDetailModalProps {
   predictions: Prediction[];
   onClose: () => void;
   currentUser: User | null;
-  selectedDate: Date; // 1. A DATA DO CALENDÁRIO CHEGA AQUI
+  selectedDate: Date;
 }
 
 interface MatchDetailItem {
@@ -133,10 +134,10 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser,
   const predMap: Record<string, Prediction> = {};
   memberPredictions.forEach((p) => { predMap[String(p.match_id)] = p; });
 
-  const totals: Record<number, number> = { 10: 0, 7: 0, 5: 0, 3: 0, 0: 0 };
+  // CORREÇÃO: Inicializando com a chave '2' no lugar do '3'
+  const totals: Record<number, number> = { 10: 0, 7: 0, 5: 0, 2: 0, 0: 0 };
   let totalPoints = 0;
 
-  // CORREÇÃO DO BUG DA MEIA-NOITE: Filtrar com base no calendário (selectedDate) e não no relógio do PC
   const selectedStr = selectedDate.toDateString();
   const dayMatches = matches.filter((m) => {
     const matchDate = m.utcDate || m.date || m.match_date;
@@ -154,7 +155,9 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser,
     
     if (hasOfficialScore && pred && pred.home_score != null && pred.away_score != null) {
       scored = getMatchPoints(officialHome, officialAway, pred.home_score, pred.away_score);
-      totals[scored.pts] += 1;
+      if (totals[scored.pts] !== undefined) {
+        totals[scored.pts] += 1;
+      }
       totalPoints += scored.pts;
     }
 
@@ -204,10 +207,11 @@ function MemberDetailModal({ member, matches, predictions, onClose, currentUser,
           </div>
           <div className="h-7 w-px bg-white/10" />
           <div className="flex flex-1 items-center justify-end gap-2 flex-wrap">
-            {[10, 7, 5, 3, 0].map(p => (
+            {/* CORREÇÃO: Array ajustado para [10, 7, 5, 2, 0] */}
+            {[10, 7, 5, 2, 0].map(p => (
               totals[p] > 0 ? (
                 <div key={p} className="flex items-center gap-1 bg-white/5 rounded-full px-2 py-0.5 border border-white/5">
-                  <span className="text-[11px] font-black" style={{ color: ({ 10: "#4edea3", 7: "#64a0ff", 5: "#ffb95f", 3: "#b482ff", 0: "#ff6464" } as Record<number, string>)[p] }}>{p}pts</span>
+                  <span className="text-[11px] font-black" style={{ color: ({ 10: "#4edea3", 7: "#64a0ff", 5: "#ffb95f", 2: "#b482ff", 0: "#ff6464" } as Record<number, string>)[p] }}>{p}pts</span>
                   <span className="text-[10px] text-[#8a9a8e] font-bold">×{totals[p]}</span>
                 </div>
               ) : null
@@ -296,7 +300,7 @@ interface LiveRankingProps {
   predictions: Prediction[];
   liveMatches: Match[];
   dbRanking: User[];
-  selectedDate: Date; // 2. RECEBE A DATA DO PAI
+  selectedDate: Date;
 }
 
 export default function LiveRanking({ user, predictions, liveMatches, dbRanking, selectedDate }: LiveRankingProps) {
@@ -307,7 +311,6 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking,
 
     const rankingMap: Record<string, User & { points: number }> = {};
 
-    // 1. A SUA LÓGICA MANTIDA: Usa o DB como base confiável
     if (dbRanking) {
       dbRanking.forEach((u) => {
         rankingMap[u.id] = {
@@ -321,7 +324,6 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking,
 
     const selDateMs = new Date(selectedDate.toDateString()).getTime();
 
-    // 2. A MÁGICA: Ajuste Temporal (Viagem no tempo) + Cálculo Ao Vivo
     predictions.forEach((p) => {
       const match = liveMatches.find((m) => String(m.id) === String(p.match_id));
       if (!match) return;
@@ -335,15 +337,10 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking,
         rankingMap[p.user_id] = { id: p.user_id, name: "Competidor", avatar_url: "", points: 0 };
       }
 
-      // REGRA DE VIAGEM NO TEMPO: 
-      // Se o jogo aconteceu DEPOIS da data que você selecionou no calendário,
-      // nós SUBTRAÍMOS os pontos dele do seu Total, para você ver o ranking como ele era no passado.
       if (matchDateMs > selDateMs) {
         const pointsAlreadySaved = p.points || 0;
         rankingMap[p.user_id].points -= pointsAlreadySaved;
       }
-      // A SUA LÓGICA DE DELTA: 
-      // Se o jogo pertence ao dia selecionado (ou antes) e está rolando, aplicamos o Delta do ao vivo.
       else if (match.status === "IN_PLAY" || match.status === "FINISHED" || match.status === "PAUSED") {
         const officialHome = match.score?.regularTime?.home ?? match.score?.fullTime?.home ?? null;
         const officialAway = match.score?.regularTime?.away ?? match.score?.fullTime?.away ?? null;
@@ -361,7 +358,6 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking,
       }
     });
 
-    // 3. Ordena do 1º colocado ao último
     return Object.values(rankingMap).sort((a, b) => b.points - a.points);
   }, [dbRanking, predictions, liveMatches, selectedDate]);
 
@@ -416,7 +412,7 @@ export default function LiveRanking({ user, predictions, liveMatches, dbRanking,
           matches={liveMatches} 
           predictions={predictions} 
           onClose={() => setSelectedMember(null)} 
-          selectedDate={selectedDate} // 3. A DATA SEGUE PARA O MODAL
+          selectedDate={selectedDate}
         />
       )}
     </>
